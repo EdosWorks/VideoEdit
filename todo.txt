@@ -2,3 +2,5 @@
 figure out if we can use it for instant edits to the video.
 
 - Go through opencv support(if any!) for embedding video in a tkinter GUI implementation.
+
+Please add/modify as appropriate. 
