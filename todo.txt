@@ -1,0 +1,4 @@
+- look around opencv's python tutorial for video editing taking about a day or two.
+  figure out if we can use it for instant edits to the video.
+
+- Go through opencv support(if any!) for embedding video in a tkinter GUI implementation.
