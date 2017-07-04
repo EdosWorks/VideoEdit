@@ -18,6 +18,16 @@ class horizontal_button_group:
         self.button=Button(master,text=name,fg='white',bg='red',command=task,width=20)
         self.button.pack(padx=width_padding,side=LEFT)
         self.button.propagate(0)
+class standard_dropDown_menu:
+    def __init__(self,obj,master):
+        screen_width=root.winfo_screenwidth()
+        width_padding=(2*screen_width)/128
+        self.variable = StringVar(master)
+        self.variable.set("SHAPES") # default value
+        self.variable.trace("w", obj.shapes_output__function)
+        self.menu = OptionMenu(master, self.variable, "SQUARE", "TRIANGLE", "CIRCLE","ARROW")
+        self.menu.pack(padx=width_padding,side=LEFT)
+        self.menu.config(bg='red',fg='white',width=width_padding)
 class create_label:
     def __init__(self,frame,message,font_color,padingx,padingy):
         self.label=Label(frame,text=message,fg=font_color)
@@ -51,7 +61,7 @@ class set_up_GUI:
         self.trim_button=horizontal_button_group(self.toolbar3.frame,'TRIM VIDEO',self.dummy_function)
         self.speed_button=horizontal_button_group(self.toolbar3.frame,'CHANGE SPEED',self.dummy_function)
         self.zoom_button=horizontal_button_group(self.toolbar3.frame,'ZOOM',self.dummy_function)
-        self.shape_button=horizontal_button_group(self.toolbar3.frame,'SHAPES',self.dummy_function)
+        self.shape_menu=standard_dropDown_menu(self,self.toolbar3.frame)
         self.exit_button=horizontal_button_group(self.toolbar3.frame,'EXIT',root.quit)
     ########################Methods to import and select the videos########################################
     def check_file_existance(self,file,list_id):
@@ -89,8 +99,10 @@ class set_up_GUI:
             try:
                 self.insert_video(file)
             except RuntimeError as e:
-                tkMessageBox.showinfo("Title", e)
+                tkMessageBox.showinfo("Error", e)
             file.close()
+    def shapes_output__function(self,*args):
+        tkMessageBox.showinfo("Shape selected",self.shape_menu.variable.get())
     def dummy_function(self):#Does Nothing,just for testing purpose.
         print ""
 ##########################################Main program starts###########################################################
