@@ -13,8 +13,11 @@ class simple_button:
         self.create_button.pack(pady=10)
 class horizontal_button_group:
     def __init__(self,master,name,task):
-        self.button=Button(master,text=name,fg='white',bg='red',command=task)
-        self.button.pack(padx=10,side=LEFT)
+        screen_width=root.winfo_screenwidth()
+        width_padding=(3*screen_width)/128
+        self.button=Button(master,text=name,fg='white',bg='red',command=task,width=20)
+        self.button.pack(padx=width_padding,side=LEFT)
+        self.button.propagate(0)
 class create_label:
     def __init__(self,frame,message,font_color,padingx,padingy):
         self.label=Label(frame,text=message,fg=font_color)
@@ -24,10 +27,10 @@ class create_frame:
         self.frame=Frame(master,bg=bg_color,width=fwidth,height=fheight)
         self.frame.pack(side=place,fill=filling)
         self.frame.propagate(0)
-########################################SETTING UP THE APPLICATION######################################################
+########################################RUNNING THE APPLICATION######################################################
 class set_up_GUI:
-    ###############################INITIALIZE THE GUI###########################################
     def __init__(self,root):
+    ###############################INITIALIZE THE GUI###########################################
         self.videos_list=[]#list that holds the paths of inserted videos
         self.sequence_video_list=[]#list that holds the paths of sequenced videos in order
         root.attributes('-fullscreen', True)
@@ -48,6 +51,7 @@ class set_up_GUI:
         self.trim_button=horizontal_button_group(self.toolbar3.frame,'TRIM VIDEO',self.dummy_function)
         self.speed_button=horizontal_button_group(self.toolbar3.frame,'CHANGE SPEED',self.dummy_function)
         self.zoom_button=horizontal_button_group(self.toolbar3.frame,'ZOOM',self.dummy_function)
+        self.shape_button=horizontal_button_group(self.toolbar3.frame,'SHAPES',self.dummy_function)
         self.exit_button=horizontal_button_group(self.toolbar3.frame,'EXIT',root.quit)
     ########################Methods to import and select the videos########################################
     def check_file_existance(self,file,list_id):
