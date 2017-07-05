@@ -7,6 +7,7 @@ from PIL import ImageTk,Image
 import tkFileDialog,tkMessageBox
 import os
 import cv2
+import time
 ###########################################classes for widgets##########################################################
 class simple_button:
     def __init__(self,master,name,font_color,backg_color,task):
@@ -128,6 +129,7 @@ class set_up_GUI:
             _, frame = self.cap.read()
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
             img = Image.fromarray(cv2image)
+            img=img.resize((600,500))
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_holder.imgtk = imgtk
             self.video_holder.configure(image=imgtk)
