@@ -3,9 +3,10 @@ try:
     from Tkinter import *#version 2.7
 except ImportError:
     from tkinter import *#version 3.0
-#from PIL import ImageTk,Image
+from PIL import ImageTk,Image
 import tkFileDialog,tkMessageBox
 import os
+import cv2
 ###########################################classes for widgets##########################################################
 class simple_button:
     def __init__(self,master,name,font_color,backg_color,task):
@@ -51,6 +52,7 @@ class set_up_GUI:
         root.attributes('-fullscreen', True)
         root.title("Sports Video Editor")
         root.aspect(1,1,1,1)
+        self.cap=FALSE
         self.screen_width = root.winfo_screenwidth()
         self.screen_height = root.winfo_screenheight()
         self.toolbar3=create_frame(root,0.15*self.screen_height,self.screen_width,BOTTOM,'gray80',X)#frame for video controls
@@ -58,7 +60,9 @@ class set_up_GUI:
         self.toolbar=create_frame(root,0.85*self.screen_height,0.1*self.screen_width,LEFT,'blue',Y,)#frame for videos in sequence
         self.label_selected_videos=create_label(self.toolbar.frame,"Select videos",'red',30,30)
         self.toolbar1=create_frame(root,0.85*self.screen_height,0.8*self.screen_width,LEFT,'snow1',Y)#frame for video player
-        self.label_video_area=create_label(self.toolbar1.frame,"Video area",'red',460,30)
+        self.video_holder = Label(self.toolbar1.frame)
+        #self.video_holder.pack(side=LEFT,fill=X)#,expand=True)
+        #self.video_holder.config(width=int(1.85*self.screen_width))
         self.toolbar2=create_frame(root,0.85*self.screen_height,0.1*self.screen_width,RIGHT,'blue',Y)#frame for imported videos
         self.label_imported_video=create_label(self.toolbar2.frame,"Import videos",'red',30,30)
         self.browse_button=simple_button(self.toolbar2.frame,'Browse files','white','blue',self.browse_options)
@@ -79,8 +83,6 @@ class set_up_GUI:
         else:
             tkMessageBox.showinfo("Title", "File already exists")
             return FALSE
-    def set_video_to_button(self,file_name):
-        os.system(file_name)
     def insert_video_to_sequence(self,file):
         if(self.check_file_existance(file,2)):
             sequence_video=simple_button(self.toolbar.frame,self.get_file_name(file),'blue','white',lambda: self.set_video_to_button(file.name))
@@ -106,17 +108,37 @@ class set_up_GUI:
             except RuntimeError as e:
                 tkMessageBox.showinfo("Error", e)
             file.close()
+    #######################################Video_Modification_Controls##################################################
     def shapes_output__function(self,*args):
         tkMessageBox.showinfo("Shape selected",self.shape_menu.variable.get())
     def speed_output__function(self,*args):
         tkMessageBox.showinfo("Speed selected",self.speed_menu.variable.get())
     def dummy_function(self):#Does Nothing,just for testing purpose.
         print ""
+    #######################################Display Videos###############################################################
+    def set_video_to_button(self,file_name):
+        if self.cap!=FALSE:
+            self.cap.release()
+            self.video_holder.destroy()
+            cv2.destroyAllWindows()
+        self.video_holder = Label(self.toolbar1.frame)
+        self.video_holder.pack(side=LEFT,fill=X)
+        self.cap = cv2.VideoCapture(file_name)
+
+        def show_frame():
+            _, frame = self.cap.read()
+            cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+            img = Image.fromarray(cv2image)
+            imgtk = ImageTk.PhotoImage(image=img)
+            self.video_holder.imgtk = imgtk
+            self.video_holder.configure(image=imgtk)
+            self.video_holder.after(2, show_frame)
+        show_frame()
+
+
 ##########################################Main program starts###########################################################
 root=Tk()
 Video_App=set_up_GUI(root)
 root.mainloop()
-
-
 
 
