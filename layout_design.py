@@ -61,8 +61,7 @@ class set_up_GUI:
         self.label_selected_videos=create_label(self.toolbar.frame,"Select videos",'red',30,30)
         self.toolbar1=create_frame(root,0.85*self.screen_height,0.8*self.screen_width,LEFT,'snow1',Y)#frame for video player
         self.video_holder = Label(self.toolbar1.frame)
-        #self.video_holder.pack(side=LEFT,fill=X)#,expand=True)
-        #self.video_holder.config(width=int(1.85*self.screen_width))
+        self.video_holder.pack()
         self.toolbar2=create_frame(root,0.85*self.screen_height,0.1*self.screen_width,RIGHT,'blue',Y)#frame for imported videos
         self.label_imported_video=create_label(self.toolbar2.frame,"Import videos",'red',30,30)
         self.browse_button=simple_button(self.toolbar2.frame,'Browse files','white','blue',self.browse_options)
@@ -122,7 +121,7 @@ class set_up_GUI:
             self.video_holder.destroy()
             cv2.destroyAllWindows()
         self.video_holder = Label(self.toolbar1.frame)
-        self.video_holder.pack(side=LEFT,fill=X)
+        self.video_holder.pack()
         self.cap = cv2.VideoCapture(file_name)
 
         def show_frame():
@@ -132,7 +131,7 @@ class set_up_GUI:
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_holder.imgtk = imgtk
             self.video_holder.configure(image=imgtk)
-            self.video_holder.after(2, show_frame)
+            self.video_holder.after(1, show_frame)
         show_frame()
 
 
