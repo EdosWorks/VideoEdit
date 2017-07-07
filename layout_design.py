@@ -73,9 +73,9 @@ class set_up_GUI:
         self.video_holder = Label(self.toolbar1.frame)
         self.video_holder.pack()
         self.frame_controls=create_frame(self.toolbar1.frame,0.1*self.screen_height,0.8*self.screen_width,BOTTOM,'gray',X)
-        self.skip_forward_frames=video_control_group(self.frame_controls.frame,'>>>>',lambda :self.skip_frames_forward('FORWARD'),RIGHT,FALSE)
-        self.skip_backward_frames=video_control_group(self.frame_controls.frame,'<<<<',lambda :self.skip_frames_forward('BACKWARD'),LEFT,FALSE)
-        self.play_pause_video=video_control_group(self.frame_controls.frame,'Play/Pause',lambda :self.change_frames_speed(self.video_frames_delay%2),LEFT,TRUE)
+        self.skip_forward_frames=video_control_group(self.frame_controls.frame,'>>>>',lambda :self.skip_frames_forward('FORWARD'),RIGHT,FALSE)#for skip forward
+        self.skip_backward_frames=video_control_group(self.frame_controls.frame,'<<<<',lambda :self.skip_frames_forward('BACKWARD'),LEFT,FALSE)#for skip backward
+        self.play_pause_video=video_control_group(self.frame_controls.frame,'Play/Pause',lambda :self.change_frames_speed(self.video_frames_delay%2),LEFT,TRUE)#play/pause
         self.toolbar2=create_frame(root,0.85*self.screen_height,0.1*self.screen_width,RIGHT,'blue',Y)#frame for imported videos
         self.label_imported_video=create_label(self.toolbar2.frame,"Import videos",'red',30,30)
         self.browse_button=simple_button(self.toolbar2.frame,'Browse files','white','blue',self.browse_options)
