@@ -1,7 +1,7 @@
 import wx
 import wx.media
 import os
-import moviepy.editor as mp
+#import moviepy.editor as mp
 import wx.lib.scrolledpanel
 
 #----------------------------------------------------------------------
@@ -46,14 +46,14 @@ class TestPanel(wx.Frame):
         bSizer = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(50,40),size=(100,50))
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        play_button = wx.Button(self.video_operators_panel, -1, "Play",pos=(150,40),size=(100,50))
+        play_button = wx.Button(self.video_operators_panel, -1, "Play",pos=(self.get_relative_X(150),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
         play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
         self.playBtn = play_button
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(50,40),size=(100,50))
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
         bSizer.Add(load_button,0,wx.ALL,5)
@@ -92,8 +92,8 @@ class TestPanel(wx.Frame):
 
         try:
             self.media_player_panel.mc = wx.media.MediaCtrl(self.media_player_panel, style=wx.SIMPLE_BORDER,)
-            self.media_player_panel.SetInitialSize((1025,575))
-            but = wx.Button(self.imported_video_panel,label="Button 1",pos=(20,self.imported_video_position),size=(50,50))
+            self.media_player_panel.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
+            but = wx.Button(self.imported_video_panel,label="Button 1",pos=(self.get_relative_X(20),self.imported_video_position),size=(self.get_relative_X(50),self.get_relative_X(50)))
             msizer=wx.BoxSizer(wx.VERTICAL)
             msizer.Add(but,0,flag=wx.EXPAND)
             self.media_player_panel.SetSizer(msizer)
@@ -125,8 +125,8 @@ class TestPanel(wx.Frame):
 
     def import_videos(self,file_path):
         if(self.check_file_existance(file_path,1)):
-            self.imported_video_position+=100
-            button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),pos=(50,self.imported_video_position),size=(100,100))
+            self.imported_video_position+=self.get_relative_Y(100)
+            button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path))
             self.imported_button_list.append(button)
             self.videos_list.append(file_path)
@@ -168,8 +168,8 @@ class TestPanel(wx.Frame):
 
     def add_video_to_sequence(self,file_path):
         if(self.check_file_existance(file_path,2)):
-            self.sequence_video_position+=100
-            button = wx.Button(self.sequence_video_panel,label=self.get_file_name(file_path),pos=(0,self.sequence_video_position),size=(100,100))
+            self.sequence_video_position+=self.get_relative_Y(100)
+            button = wx.Button(self.sequence_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.DoLoadFile(file_path))
             self.sequence_button_list.append(button)
             self.sequence_video_list.append(file_path)
@@ -180,8 +180,6 @@ class TestPanel(wx.Frame):
 
 
     def OnLoadFile(self, evt):
-
-
         dlg = wx.FileDialog(self, message="Choose a media file",
                             defaultDir=os.getcwd(), defaultFile="",
                             style=wx.OPEN | wx.CHANGE_DIR )
@@ -206,7 +204,7 @@ class TestPanel(wx.Frame):
                           "ERROR",
                           wx.ICON_ERROR | wx.OK)
         else:
-            self.mc.SetInitialSize((1025,575))
+            self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             #self.OnPlay()
@@ -226,7 +224,7 @@ class TestPanel(wx.Frame):
                           "ERROR",
                           wx.ICON_ERROR | wx.OK)
         else:
-            self.mc.SetInitialSize((1025,575))
+            self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             #self.imported_button_list[len(self.imported_button_list)-1].Destroy()
@@ -263,6 +261,17 @@ class TestPanel(wx.Frame):
     def ShutdownDemo(self):
         self.timer.Stop()
         del self.timer
+
+
+    def get_relative_Y(self,y):
+        h=(self.screenHeight*y)/720
+        return h
+
+
+
+    def get_relative_X(self,x):
+        w=(self.screenWidth*x)/1280
+        return w
 
 app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Test")
