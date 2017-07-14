@@ -18,6 +18,63 @@ class StaticText(wx.StaticText):
             wx.StaticText.SetLabel(self, label)
 
 #----------------------------------------------------------------------
+class dropDown_menu:
+    counter=300
+
+    id=1
+    def __init__(self,place,option_list):
+        self.screenWidth=wx.DisplaySize()[0]
+        self.screenHeight=wx.DisplaySize()[1]
+        self.id=dropDown_menu.id
+        if dropDown_menu.id==1:
+            dropDown_menu.counter=self.get_relative_X(300)
+        dropDown_menu.id+=1
+        self.create(place,option_list)
+        dropDown_menu.counter+=self.get_relative_X(150)
+    def create(self,place,option_list):
+
+        # Add a panel so it looks the correct on all platforms
+        if dropDown_menu.counter==self.get_relative_X(300):
+            default_value="Speed"
+        else:
+            default_value="Shape"
+
+
+        sampleList = []
+        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(50)),
+                              size=(self.get_relative_X(100),self.get_relative_Y(50)),
+                              choices=sampleList)
+        self.widgetMaker(self.cb, option_list)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.cb, 0, wx.ALL, 5)
+        place.SetSizer(sizer)
+
+    #----------------------------------------------------------------------
+    def widgetMaker(self, widget, objects):
+        """"""
+        for obj in objects:
+            widget.Append(obj, obj)
+        widget.Bind(wx.EVT_COMBOBOX, self.onSelect)
+
+    #----------------------------------------------------------------------
+    def onSelect(self, event):
+        obj = self.cb.GetClientData(self.cb.GetSelection())
+        if(self.id==1):
+            frame.speed_menu_output(obj)
+        elif(self.id==2):
+            frame.shape_menu_output(obj)
+
+
+    def get_relative_Y(self,y):
+        h=(self.screenHeight*y)/720
+        return h
+
+
+
+    def get_relative_X(self,x):
+        w=(self.screenWidth*x)/1280
+        return w
 
 class TestPanel(wx.Frame):
 
@@ -53,13 +110,13 @@ class TestPanel(wx.Frame):
         play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
         self.playBtn = play_button
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
-        load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
+        #bSizer.Add(load_button,0,wx.ALL,5)
+        #bSizer.Add(play_button,0,wx.ALL,5)
 
-        bSizer.Add(load_button,0,wx.ALL,5)
-        bSizer.Add(play_button,0,wx.ALL,5)
 
         self.SetSizer( bSizer )
+        x=dropDown_menu(self.video_operators_panel,['0.25','0.5','1','1.5','2'])
+        y=dropDown_menu(self.video_operators_panel,['square','triangle','rectangle','circle'])
 
 
 
@@ -106,10 +163,6 @@ class TestPanel(wx.Frame):
         self.Bind(wx.media.EVT_MEDIA_LOADED, self.OnMediaLoaded)
 
 ############################################METHODS######################################################################
-
-
-
-
 
     def check_file_existance(self,file,list_id):
         if((file not in self.videos_list and list_id==1) or (file not in self.sequence_video_list and list_id==2)):
@@ -272,6 +325,17 @@ class TestPanel(wx.Frame):
     def get_relative_X(self,x):
         w=(self.screenWidth*x)/1280
         return w
+    def speed_menu_output(self,number):
+        try:
+            self.mc.SetPlaybackRate(int(number))
+        except ValueError:
+            self.mc.SetPlaybackRate(float(number))
+        offset=self.mc.Tell()
+
+    def shape_menu_output(self,shape):
+        wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
+
+
 
 app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Test")
