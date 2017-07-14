@@ -3,7 +3,7 @@ import wx.media
 import os
 #import moviepy.editor as mp
 import wx.lib.scrolledpanel
-
+import time
 #----------------------------------------------------------------------
 
 class StaticText(wx.StaticText):
@@ -106,8 +106,8 @@ class TestPanel(wx.Frame):
         load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        play_button = wx.Button(self.video_operators_panel, -1, "Play",pos=(self.get_relative_X(150),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
-        play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
+        play_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(150),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
+        #play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
         self.playBtn = play_button
 
         #bSizer.Add(load_button,0,wx.ALL,5)
@@ -145,6 +145,10 @@ class TestPanel(wx.Frame):
 
         self.imported_video_position=0
         self.sequence_video_position=0
+
+
+
+        self.play_flag=0
        # Create some controls
 
         try:
@@ -260,7 +264,6 @@ class TestPanel(wx.Frame):
             self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
-            #self.OnPlay()
 
 
 
@@ -270,19 +273,15 @@ class TestPanel(wx.Frame):
 
 
 
-
-    def OnPlay(self, evt):
+    def play(self):
         if not self.mc.Play():
             wx.MessageBox("Unable to Play media : Unsupported format?",
-                          "ERROR",
-                          wx.ICON_ERROR | wx.OK)
+            "ERROR",
+            wx.ICON_ERROR | wx.OK)
         else:
             self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
-            #self.imported_button_list[len(self.imported_button_list)-1].Destroy()
-            #self.imported_button_list.pop()
-
 
 
 
@@ -308,6 +307,9 @@ class TestPanel(wx.Frame):
     def OnTimer(self, evt):
         offset = self.mc.Tell()
         self.slider.SetValue(offset)
+        if self.mc.Tell()>0 and self.play_flag==0:
+            self.play()
+            self.play_flag=1
 
 
 
@@ -325,12 +327,17 @@ class TestPanel(wx.Frame):
     def get_relative_X(self,x):
         w=(self.screenWidth*x)/1280
         return w
+
+
+
     def speed_menu_output(self,number):
         try:
             self.mc.SetPlaybackRate(int(number))
         except ValueError:
             self.mc.SetPlaybackRate(float(number))
         offset=self.mc.Tell()
+
+
 
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
