@@ -1,7 +1,6 @@
 import wx
 import wx.media
 import os
-import socket
 #import moviepy.editor as mp
 import wx.lib.scrolledpanel
 import time
@@ -99,7 +98,6 @@ class TestPanel(wx.Frame):
         self.imported_video_panel.SetBackgroundColour('#777777')
         self.slider_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
         self.slider_panel.SetBackgroundColour('#AAAAAA')
-        self.status_informer = wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7),20), style=wx.SIMPLE_BORDER)
 
 
 
@@ -161,6 +159,9 @@ class TestPanel(wx.Frame):
 
 
         self.play_flag=0
+        self.current_operation_dict={0.25:'red',0.5:'blue',1:'green',1.5:'yellow',2:'black'}
+        self.status_panel_list=[]
+        self.time_elapsed=0
        # Create some controls
 
         try:
@@ -277,6 +278,11 @@ class TestPanel(wx.Frame):
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             self.play_flag=0
+            for each_object in self.status_panel_list:
+                each_object.Destroy()
+            for i in range(len(self.status_panel_list)):
+                self.status_panel_list.pop(0)
+            self.time_elapsed=0
 
 
 
@@ -295,6 +301,7 @@ class TestPanel(wx.Frame):
             self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
+            self.adjust_slider_color(1)
 
 
 
@@ -322,11 +329,24 @@ class TestPanel(wx.Frame):
             value=(17.2/17.5)*(offset*self.screenWidth*8)/(10*self.mc.Length())
         except ZeroDivisionError:
             pass
-        #self.slider.SetBackgroundColour(wx.Colour(50,100,200))
-        #event = wx.SysColourChangedEvent()
-        #self.ProcessEvent(event)
-        self.status_informer.SetBackgroundColour("blue")
-        self.status_informer.SetSize((value,10))
+        try:
+            self.status_panel_list[len(self.status_panel_list)-1].SetSize((value-self.time_elapsed,10))
+        except IndexError:
+            pass
+    def adjust_slider_color(self,operation_id):
+        try:
+            previos_operation_end=self.status_panel_list[len(self.status_panel_list)-1].GetSize()[0]
+            self.time_elapsed+=previos_operation_end
+        except:
+            pass
+        new_color_panel=wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7)+self.time_elapsed,20), style=wx.SIMPLE_BORDER)
+        #new_color_panel
+        self.status_panel_list.append(new_color_panel)
+        color=self.current_operation_dict[operation_id]
+        self.status_panel_list[len(self.status_panel_list)-1].SetBackgroundColour(color)
+
+
+
 
 
 
@@ -352,15 +372,16 @@ class TestPanel(wx.Frame):
     def speed_menu_output(self,number):
         try:
             self.mc.SetPlaybackRate(int(number))
+            speed_factor=int(number)
         except ValueError:
             self.mc.SetPlaybackRate(float(number))
-        offset=self.mc.Tell()
-        print offset
+            speed_factor=float(number)
+        self.adjust_slider_color(speed_factor)
+
 
 
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
-
 
 
 
