@@ -1,6 +1,7 @@
 import wx
 import wx.media
 import os
+import socket
 #import moviepy.editor as mp
 import wx.lib.scrolledpanel
 import time
@@ -96,6 +97,11 @@ class TestPanel(wx.Frame):
         self.imported_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,self.screenHeight), pos=(9*self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
         self.imported_video_panel.SetupScrolling()
         self.imported_video_panel.SetBackgroundColour('#777777')
+        self.slider_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
+        self.slider_panel.SetBackgroundColour('#AAAAAA')
+        self.status_informer = wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7),20), style=wx.SIMPLE_BORDER)
+
+
 
         self.videos_list=[]#list that holds the paths of inserted videos
         self.sequence_video_list=[]#list that holds the paths of sequenced videos in order
@@ -116,9 +122,10 @@ class TestPanel(wx.Frame):
         bSizer.Add(load_button,0,wx.ALL,5)
         bSizer.Add(trim_button,0,wx.ALL,5)
         bSizer.Add(exit_button,0,wx.ALL,5)
-
-
         self.SetSizer( bSizer )
+
+
+
         x=dropDown_menu(self.video_operators_panel,['0.25','0.5','1','1.5','2'])
         y=dropDown_menu(self.video_operators_panel,['square','triangle','rectangle','circle'])
 
@@ -134,10 +141,11 @@ class TestPanel(wx.Frame):
 
 
 
-        slider = wx.Slider(self.video_operators_panel, -1, 0, 0, 100)
+        slider = wx.Slider(self.slider_panel, -1, 206, 0, 255)
         self.slider = slider
         slider.SetMinSize((8*self.screenWidth/10, -1))
         self.Bind(wx.EVT_SLIDER, self.OnSeek, slider)
+        #self.Bind(wx.EVT_COMMAND_SCROLL, self.OnSeek, slider)
         bSizer = wx.BoxSizer( wx.VERTICAL )
         bSizer.Add(slider, 0,)
         self.SetSizer( bSizer )
@@ -290,19 +298,13 @@ class TestPanel(wx.Frame):
 
 
 
-    def OnStop(self, evt):
-
-        self.mc.Stop()
-        self.mc.ShowPlayerControls()
-        self.mc.SetPlaybackRate(2)
-
-
 
 
     def OnSeek(self, evt):
         offset = self.slider.GetValue()
         self.det()
         self.mc.Seek(offset)
+
 
 
     def det(self):
@@ -315,6 +317,16 @@ class TestPanel(wx.Frame):
         if self.mc.Tell()>0 and self.play_flag==0:
             self.play()
             self.play_flag=1
+        value=0
+        try:
+            value=(17.2/17.5)*(offset*self.screenWidth*8)/(10*self.mc.Length())
+        except ZeroDivisionError:
+            pass
+        #self.slider.SetBackgroundColour(wx.Colour(50,100,200))
+        #event = wx.SysColourChangedEvent()
+        #self.ProcessEvent(event)
+        self.status_informer.SetBackgroundColour("blue")
+        self.status_informer.SetSize((value,10))
 
 
 
@@ -343,11 +355,13 @@ class TestPanel(wx.Frame):
         except ValueError:
             self.mc.SetPlaybackRate(float(number))
         offset=self.mc.Tell()
-
+        print offset
 
 
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
+
+
 
 
 
