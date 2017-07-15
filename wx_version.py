@@ -1,6 +1,7 @@
 import wx
 import wx.media
 import os
+import socket
 #import moviepy.editor as mp
 import wx.lib.scrolledpanel
 import time
@@ -41,7 +42,7 @@ class dropDown_menu:
 
 
         sampleList = []
-        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(50)),
+        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(63)),
                               size=(self.get_relative_X(100),self.get_relative_Y(50)),
                               choices=sampleList)
         self.widgetMaker(self.cb, option_list)
@@ -108,14 +109,14 @@ class TestPanel(wx.Frame):
         bSizer = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(60)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
+        trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(60)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         #play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
         self.playBtn = trim_button
 
-        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(60)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
         bSizer.Add(load_button,0,wx.ALL,5)
