@@ -1,7 +1,6 @@
 import wx
 import wx.media
 import os
-import socket
 #import moviepy.editor as mp
 import wx.lib.scrolledpanel
 import time
