@@ -106,12 +106,16 @@ class TestPanel(wx.Frame):
         load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        play_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(150),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
+        trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
         #play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
-        self.playBtn = play_button
+        self.playBtn = trim_button
 
-        #bSizer.Add(load_button,0,wx.ALL,5)
-        #bSizer.Add(play_button,0,wx.ALL,5)
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(40)),size=(self.get_relative_X(100),self.get_relative_Y(50)))
+        exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
+
+        bSizer.Add(load_button,0,wx.ALL,5)
+        bSizer.Add(trim_button,0,wx.ALL,5)
+        bSizer.Add(exit_button,0,wx.ALL,5)
 
 
         self.SetSizer( bSizer )
@@ -264,6 +268,7 @@ class TestPanel(wx.Frame):
             self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
+            self.play_flag=0
 
 
 
@@ -313,9 +318,11 @@ class TestPanel(wx.Frame):
 
 
 
-    def ShutdownDemo(self):
+    def ShutdownDemo(self,event):
         self.timer.Stop()
         del self.timer
+        self.Destroy()
+
 
 
     def get_relative_Y(self,y):
@@ -348,3 +355,4 @@ app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Test")
 frame.ShowFullScreen(True)
 app.MainLoop()
+
