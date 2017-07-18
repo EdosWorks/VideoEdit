@@ -41,7 +41,7 @@ class dropDown_menu:
 
 
         sampleList = []
-        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(63)),
+        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(50)),
                               size=(self.get_relative_X(100),self.get_relative_Y(50)),
                               choices=sampleList)
         self.widgetMaker(self.cb, option_list)
@@ -103,18 +103,19 @@ class TestPanel(wx.Frame):
 
         self.videos_list=[]#list that holds the paths of inserted videos
         self.sequence_video_list=[]#list that holds the paths of sequenced videos in order
+        self.sequence_video_pointer=0
 
         bSizer = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(60)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(60)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         #play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
         self.playBtn = trim_button
 
-        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(60)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
         bSizer.Add(load_button,0,wx.ALL,5)
@@ -129,7 +130,7 @@ class TestPanel(wx.Frame):
 
 
 
-        wx.CallAfter(self.DoLoadFile, os.path.abspath("data/testmovie.mpg"))
+        wx.CallAfter(self.DoLoadFile, os.path.abspath("data/testmovie.mpg")) #check
 
 
 
@@ -159,7 +160,7 @@ class TestPanel(wx.Frame):
 
 
         self.play_flag=0
-        self.current_operation_dict={0.25:'red',0.5:'blue',1:'green',1.5:'yellow',2:'black'}
+        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red'}
         self.status_panel_list=[]
         self.time_elapsed=0
        # Create some controls
@@ -230,6 +231,8 @@ class TestPanel(wx.Frame):
             self.sequence_video_panel.SetupScrolling()
             sSizer = wx.BoxSizer( wx.VERTICAL )
             for i in self.sequence_button_list:
+                #if self.sequence_button_list.index(i)!=0:
+                    #i.Disable()
                 sSizer.Add( i, 0, wx.ALL, 5 )
             self.sequence_video_panel.SetSizer(sSizer)
 
@@ -266,7 +269,9 @@ class TestPanel(wx.Frame):
 
 
     def DoLoadFile(self, path):
-
+        if len(self.sequence_video_list)>0:
+            self.sequence_video_pointer=self.sequence_video_list.index(path)
+            print self.sequence_video_pointer
         self.playBtn.Enable()
 
         if not self.mc.Load(path):
@@ -287,7 +292,6 @@ class TestPanel(wx.Frame):
 
 
     def OnMediaLoaded(self, evt):
-
         self.playBtn.Enable()
 
 
@@ -324,6 +328,12 @@ class TestPanel(wx.Frame):
         if self.mc.Tell()>0 and self.play_flag==0:
             self.play()
             self.play_flag=1
+        #if int(self.mc.Tell()/1000)==int(self.mc.Length()/1000) and self.mc.Length()>0:
+        #    try:
+        #        self.sequence_video_pointer+=2
+        #        self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
+        #    except IndexError:
+        #        pass
         value=0
         try:
             value=(17.2/17.5)*(offset*self.screenWidth*8)/(10*self.mc.Length())
@@ -333,6 +343,11 @@ class TestPanel(wx.Frame):
             self.status_panel_list[len(self.status_panel_list)-1].SetSize((value-self.time_elapsed,10))
         except IndexError:
             pass
+
+
+
+
+
     def adjust_slider_color(self,operation_id):
         try:
             previos_operation_end=self.status_panel_list[len(self.status_panel_list)-1].GetSize()[0]
@@ -343,11 +358,7 @@ class TestPanel(wx.Frame):
         #new_color_panel
         self.status_panel_list.append(new_color_panel)
         color=self.current_operation_dict[operation_id]
-        self.status_panel_list[len(self.status_panel_list)-1].SetBackgroundColour(color)
-
-
-
-
+        self.status_panel_list[len(self.status_panel_list)-1].SetBackgroundColour(color) #do this while creating the panel; avoid fetching
 
 
     def ShutdownDemo(self,event):
@@ -388,6 +399,9 @@ class TestPanel(wx.Frame):
 
 app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Test")
-frame.ShowFullScreen(True)
+#frame.ShowFullScreen(True)
+frame.Maximize(True)
+frame.SetTitle("Sports Video Editor")
+frame.Show()
 app.MainLoop()
 
