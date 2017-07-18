@@ -212,7 +212,7 @@ class TestPanel(wx.Frame):
         name=list(name.split('\\'))
         name=name[len(name)-1]
         type=list(name.split('.'))
-        extensions=['m1v', 'mpeg', 'mov', 'qt', 'mpa', 'mpg', 'mpe', 'avi', 'movie', 'mp4','wmv']
+        extensions=['m1v', 'mpeg', 'mov', 'qt', 'mpa', 'mpg', 'mpe', 'avi', 'movie', 'mp4','wmv','mkv']
         if(type[len(type)-1].lower() in extensions):#also include all the desired extensions.
             return name
         else:
