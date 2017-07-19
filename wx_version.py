@@ -1,9 +1,12 @@
 import wx
 import wx.media
 import os
-#import moviepy.editor as mp
 import wx.lib.scrolledpanel
+from moviepy.editor import VideoFileClip, concatenate_videoclips
+from PIL import Image
+import numpy as np
 import time
+import wx.lib.buttons
 #----------------------------------------------------------------------
 
 class StaticText(wx.StaticText):
@@ -195,14 +198,30 @@ class TestPanel(wx.Frame):
 
 
     def import_videos(self,file_path):
-        if(self.check_file_existance(file_path,1)):
+        if(self.check_file_existance(file_path,1) and self.get_file_name(file_path)):
             self.imported_video_position+=self.get_relative_Y(100)
-            button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
-            button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path))
-            self.imported_button_list.append(button)
+            button_image=str(self.get_image_from_video(file_path))
+            bmp = wx.Bitmap(button_image, wx.BITMAP_TYPE_ANY)
+            #button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
+            button = wx.BitmapButton(self.imported_video_panel,id=wx.ID_ANY, bitmap=bmp,pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(120),self.get_relative_Y(100)))
+            Label=wx.StaticText(self.imported_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(120),self.get_relative_Y(15)))
+            Label.SetBackgroundColour((255,255,255))
+            button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path,button_image))
+            self.imported_button_list.append([button,Label])
             self.videos_list.append(file_path)
             self.show_buttons(1)
 
+
+    def get_image_from_video(self,file_path):
+        clip = VideoFileClip(file_path)
+        image_time=int(clip.duration/2)
+        f=clip.get_frame(image_time) # shows the frame of the clip at t=10.5s
+        img=Image.fromarray(f)
+        img=img.resize((100,70))
+        file_name=self.get_file_name(file_path).split('.')[0]+'.png'
+        image_path = os.path.expanduser("~\\Desktop\\EDOS\\temporary_images\\"+file_name)
+        img.save(image_path)
+        return image_path
 
 
 
@@ -225,7 +244,8 @@ class TestPanel(wx.Frame):
             self.imported_video_panel.SetupScrolling()
             iSizer = wx.BoxSizer( wx.VERTICAL )
             for i in self.imported_button_list:
-                iSizer.Add( i, 0, wx.ALL, 5 )
+                iSizer.Add( i[0], 0, wx.ALL, 0 )
+                iSizer.Add(i[1],0,wx.ALL,0)
             self.imported_video_panel.SetSizer(iSizer)
         elif (id==2):
             self.sequence_video_panel.SetupScrolling()
@@ -233,18 +253,23 @@ class TestPanel(wx.Frame):
             for i in self.sequence_button_list:
                 #if self.sequence_button_list.index(i)!=0:
                     #i.Disable()
-                sSizer.Add( i, 0, wx.ALL, 5 )
+                sSizer.Add( i[0], 0, wx.ALL, 0 )
+                sSizer.Add(i[1],0,wx.ALL,0)
             self.sequence_video_panel.SetSizer(sSizer)
 
 
 
 
-    def add_video_to_sequence(self,file_path):
-        if(self.check_file_existance(file_path,2)):
+    def add_video_to_sequence(self,file_path,image_path):
+        if(self.check_file_existance(file_path,2) and self.get_file_name(file_path)):
             self.sequence_video_position+=self.get_relative_Y(100)
-            button = wx.Button(self.sequence_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
+            bmp = wx.Bitmap(image_path, wx.BITMAP_TYPE_ANY)
+            button = wx.BitmapButton(self.sequence_video_panel,id=wx.ID_ANY,bitmap=bmp,pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(120),self.get_relative_Y(105)))
+            Label=wx.StaticText(self.sequence_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.sequence_video_position),size=(self.get_relative_X(120),self.get_relative_Y(15)))
+            Label.SetBackgroundColour((255,255,255))
+            #button = wx.Button(self.sequence_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(120),self.get_relative_Y(105)))
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.DoLoadFile(file_path))
-            self.sequence_button_list.append(button)
+            self.sequence_button_list.append([button,Label])
             self.sequence_video_list.append(file_path)
             self.show_buttons(2)
 
