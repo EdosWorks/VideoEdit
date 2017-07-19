@@ -1,0 +1,9 @@
+----concatenations----
+
+ffmpeg -f concat -safe 0 -C:\moviepy-master\concat.txt -c copy output.mp4
+
+----speeding up of the video with audio too----
+
+C:\Users\SAMHITA VVNK>ffmpeg -i C:\moviepy-master\extract.mp4 -filter_complex "[
+0:v]setpts=0.5*PTS[v];[0:a]atempo=2.0" -map "[a]" extract1fast.mp4
+
