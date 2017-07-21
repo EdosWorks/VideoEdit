@@ -1,0 +1,431 @@
+import wx
+import wx.media
+import os
+#import moviepy.editor as mp
+import wx.lib.scrolledpanel
+import time
+#----------------------------------------------------------------------
+
+class StaticText(wx.StaticText):
+    """
+    A StaticText that only updates the label if it has changed, to
+    help reduce potential flicker since these controls would be
+    updated very frequently otherwise.
+    """
+    def SetLabel(self, label):
+
+        if label <> self.GetLabel():
+            wx.StaticText.SetLabel(self, label)
+
+#----------------------------------------------------------------------
+class dropDown_menu:
+    counter=300
+
+    id=1
+    def __init__(self,place,option_list):
+        self.screenWidth=wx.DisplaySize()[0]
+        self.screenHeight=wx.DisplaySize()[1]
+        self.id=dropDown_menu.id
+        if dropDown_menu.id==1:
+            dropDown_menu.counter=self.get_relative_X(300)
+        dropDown_menu.id+=1
+        self.create(place,option_list)
+        dropDown_menu.counter+=self.get_relative_X(150)
+    def create(self,place,option_list):
+
+        # Add a panel so it looks the correct on all platforms
+        if dropDown_menu.counter==self.get_relative_X(300):
+            default_value="Speed"
+        else:
+            default_value="Shape"
+
+
+        sampleList = []
+        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(50)),
+                              size=(self.get_relative_X(100),self.get_relative_Y(50)),
+                              choices=sampleList)
+        self.widgetMaker(self.cb, option_list)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.cb, 0, wx.ALL, 5)
+        place.SetSizer(sizer)
+
+    #----------------------------------------------------------------------
+    def widgetMaker(self, widget, objects):
+        """"""
+        for obj in objects:
+            widget.Append(obj, obj)
+        widget.Bind(wx.EVT_COMBOBOX, self.onSelect)
+
+    #----------------------------------------------------------------------
+    def onSelect(self, event):
+        obj = self.cb.GetClientData(self.cb.GetSelection())
+        if(self.id==1):
+            frame.speed_menu_output(obj)
+        elif(self.id==2):
+            frame.shape_menu_output(obj)
+
+
+    def get_relative_Y(self,y):
+        h=(self.screenHeight*y)/720
+        return h
+
+
+
+    def get_relative_X(self,x):
+        w=(self.screenWidth*x)/1280
+        return w
+
+class TestPanel(wx.Frame):
+
+    def __init__(self,parent,id,title):
+       #First retrieve the screen size of the device
+        screenSize = wx.DisplaySize()
+        self.screenWidth = screenSize[0]
+        self.screenHeight = screenSize[1]
+
+        #Create a frame
+        wx.Frame.__init__(self,parent,id,title,size=screenSize, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
+        self.Bind(wx.EVT_CLOSE, self.ShutdownDemo)
+        self.media_player_panel= wx.Panel(self,size=(8/10*self.screenWidth,4*self.screenHeight/5), pos=(self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
+        self.sequence_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,4*self.screenHeight/5+self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
+        self.sequence_video_panel.SetupScrolling()
+        self.sequence_video_panel.SetBackgroundColour('#777777')
+        self.video_operators_panel = wx.Panel(self,size=(8*self.screenWidth/10,self.screenHeight/5), pos=(self.screenWidth/10,4*self.screenHeight/5), style=wx.SIMPLE_BORDER)
+        self.video_operators_panel.SetBackgroundColour('#FFFFFF')
+        self.imported_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,4*self.screenHeight/5+self.screenHeight/16), pos=(9*self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
+        self.imported_video_panel.SetupScrolling()
+        self.imported_video_panel.SetBackgroundColour('#777777')
+        self.slider_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
+        self.slider_panel.SetBackgroundColour('#AAAAAA')
+
+
+        self.import_undo_panel = wx.Panel(self,size=(1*self.screenWidth/10,11*self.screenHeight/80), pos=(9*self.screenWidth/10,69*self.screenHeight/80), style=wx.SIMPLE_BORDER)
+        self.import_undo_panel.SetBackgroundColour('#777777')
+
+        self.sequence_undo_panel = wx.Panel(self,size=(1*self.screenWidth/10,11*self.screenHeight/80), pos=(0,69*self.screenHeight/80), style=wx.SIMPLE_BORDER)
+        self.sequence_undo_panel.SetBackgroundColour('#777777')
+
+
+
+        self.videos_list=[]#list that holds the paths of inserted videos
+        self.sequence_video_list=[]#list that holds the paths of sequenced videos in order
+        self.sequence_video_pointer=0
+
+        bSizer = wx.BoxSizer( wx.HORIZONTAL )
+
+
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
+
+        trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        #play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
+        self.playBtn = trim_button
+
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
+
+        undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
+        undo_imp_but.Bind(wx.EVT_BUTTON, self.undo_import, undo_imp_but)
+
+
+        undo_seq_but = wx.Button(self.sequence_undo_panel, -1, "UNDO SEQUENCE",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
+        undo_seq_but.Bind(wx.EVT_BUTTON, self.undo_sequence, undo_seq_but)
+
+
+        bSizer.Add(load_button,0,wx.ALL,5)
+        bSizer.Add(trim_button,0,wx.ALL,5)
+        bSizer.Add(exit_button,0,wx.ALL,5)
+        bSizer.Add(undo_imp_but,0,wx.ALL,5)
+        bSizer.Add(undo_seq_but,0,wx.ALL,5)
+
+        self.SetSizer( bSizer )
+
+
+
+        x=dropDown_menu(self.video_operators_panel,['0.25','0.5','1','1.5','2'])
+        y=dropDown_menu(self.video_operators_panel,['square','triangle','rectangle','circle'])
+
+
+
+        wx.CallAfter(self.DoLoadFile, os.path.abspath("data/testmovie.mpg")) #check
+
+
+
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.OnTimer)
+        self.timer.Start(100)
+
+
+
+        slider = wx.Slider(self.slider_panel, -1, 206, 0, 255)
+        self.slider = slider
+        slider.SetMinSize((8*self.screenWidth/10, -1))
+        self.Bind(wx.EVT_SLIDER, self.OnSeek, slider)
+        #self.Bind(wx.EVT_COMMAND_SCROLL, self.OnSeek, slider)
+        bSizer = wx.BoxSizer( wx.VERTICAL )
+        bSizer.Add(slider, 0,)
+        self.SetSizer( bSizer )
+
+
+
+        self.imported_button_list=[]
+        self.sequence_button_list=[]
+
+        self.imported_video_position=0
+        self.sequence_video_position=0
+
+
+
+        self.play_flag=0
+        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red'}
+        self.status_panel_list=[]
+        self.time_elapsed=0
+       # Create some controls
+
+        try:
+            self.media_player_panel.mc = wx.media.MediaCtrl(self.media_player_panel, style=wx.SIMPLE_BORDER,)
+            self.media_player_panel.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
+            but = wx.Button(self.imported_video_panel,label="Button 1",pos=(self.get_relative_X(20),self.imported_video_position),size=(self.get_relative_X(50),self.get_relative_X(50)))
+            msizer=wx.BoxSizer(wx.VERTICAL)
+            msizer.Add(but,0,flag=wx.EXPAND)
+            self.media_player_panel.SetSizer(msizer)
+            self.mc=self.media_player_panel.mc
+            self.mc.ShowPlayerControls()
+
+        except NotImplementedError:
+            self.media_player_panel.Destroy()
+            raise
+        self.Bind(wx.media.EVT_MEDIA_LOADED, self.OnMediaLoaded)
+
+############################################METHODS######################################################################
+
+    def check_file_existance(self,file,list_id):
+        if((file not in self.videos_list and list_id==1) or (file not in self.sequence_video_list and list_id==2)):
+            if(list_id==1):
+                self.videos_list.append(file)
+            else:
+                self.sequence_video_list.append(file)
+            return True
+        else:
+            wx.MessageDialog(None,'FILE ALREADY EXISTS', 'Cannot add file', wx.OK | wx.ICON_INFORMATION).ShowModal()
+            return False
+
+
+    def import_videos(self,file_path):
+        if(self.check_file_existance(file_path,1)):
+            self.imported_video_position+=self.get_relative_Y(100)
+            button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),size=(self.get_relative_X(100),self.get_relative_X(100)))#,pos=(self.get_relative_X(50),self.imported_video_position)
+            button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path))
+            self.imported_button_list.append(button)
+            self.show_buttons(1)
+
+
+
+
+
+    def get_file_name(self,file):
+        name=str(file)
+        name=list(name.split('\\'))
+        name=name[len(name)-1]
+        type=list(name.split('.'))
+        extensions=['m1v', 'mpeg', 'mov', 'qt', 'mpa', 'mpg', 'mpe', 'avi', 'movie', 'mp4','wmv','mkv']
+        if(type[len(type)-1].lower() in extensions):#also include all the desired extensions.
+            return name
+        else:
+            raise RuntimeError("Looks like this is not a video file\n."+type[len(type)-1].lower()+" file is not supported")
+
+
+
+    def show_buttons(self,id):
+        if (id==1):
+            self.imported_video_panel.SetupScrolling()
+            iSizer = wx.BoxSizer( wx.VERTICAL )
+            for i in self.imported_button_list:
+                iSizer.Add( i, 0, wx.ALL, 5 )
+            self.imported_video_panel.SetSizer(iSizer)
+        elif (id==2):
+            self.sequence_video_panel.SetupScrolling()
+            sSizer = wx.BoxSizer( wx.VERTICAL )
+            for i in self.sequence_button_list:
+                #if self.sequence_button_list.index(i)!=0:
+                    #i.Disable()
+                sSizer.Add( i, 0, wx.ALL, 5 )
+            self.sequence_video_panel.SetSizer(sSizer)
+
+
+
+
+    def add_video_to_sequence(self,file_path):
+        if(self.check_file_existance(file_path,2)):
+            self.sequence_video_position+=self.get_relative_Y(100)
+            button = wx.Button(self.sequence_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
+            button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.DoLoadFile(file_path))
+            self.sequence_button_list.append(button)
+            self.show_buttons(2)
+
+
+
+
+
+    def OnLoadFile(self, evt):
+        dlg = wx.FileDialog(self, message="Choose a media file",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            style=wx.OPEN | wx.CHANGE_DIR )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            try:
+                self.import_videos(path)
+            except RuntimeError as e:
+                wx.MessageDialog(None,str(e), 'INVALID FILE', wx.OK | wx.ICON_INFORMATION).ShowModal()
+        dlg.Destroy()
+
+
+
+
+    def DoLoadFile(self, path):
+        if len(self.sequence_video_list)>0:
+            self.sequence_video_pointer=self.sequence_video_list.index(path)
+            print self.sequence_video_pointer
+        self.playBtn.Enable()
+
+        if not self.mc.Load(path):
+            wx.MessageBox("Unable to load %s: Unsupported format?" % path,
+                          "ERROR",
+                          wx.ICON_ERROR | wx.OK)
+        else:
+            self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
+            self.media_player_panel.GetSizer().Layout()
+            self.slider.SetRange(0, self.mc.Length())
+            self.play_flag=0
+            for each_object in self.status_panel_list:
+                each_object.Destroy()
+            for i in range(len(self.status_panel_list)):
+                self.status_panel_list.pop(0)
+            self.time_elapsed=0
+
+
+
+    def OnMediaLoaded(self, evt):
+        self.playBtn.Enable()
+
+
+
+    def play(self):
+        if not self.mc.Play():
+            wx.MessageBox("Unable to Play media : Unsupported format?",
+            "ERROR",
+            wx.ICON_ERROR | wx.OK)
+        else:
+            self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
+            self.media_player_panel.GetSizer().Layout()
+            self.slider.SetRange(0, self.mc.Length())
+            self.adjust_slider_color(1)
+
+
+
+
+
+    def OnSeek(self, evt):
+        offset = self.slider.GetValue()
+        self.det()
+        self.mc.Seek(offset)
+
+
+
+    def det(self):
+        pass
+
+
+    def OnTimer(self, evt):
+        offset = self.mc.Tell()
+        self.slider.SetValue(offset)
+        if self.mc.Tell()>0 and self.play_flag==0:
+            self.play()
+            self.play_flag=1
+        #if int(self.mc.Tell()/1000)==int(self.mc.Length()/1000) and self.mc.Length()>0:
+        #    try:
+        #        self.sequence_video_pointer+=2
+        #        self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
+        #    except IndexError:
+        #        pass
+        value=0
+        try:
+            value=(17.2/17.5)*(offset*self.screenWidth*8)/(10*self.mc.Length())
+        except ZeroDivisionError:
+            pass
+        try:
+            self.status_panel_list[len(self.status_panel_list)-1].SetSize((value-self.time_elapsed,10))
+        except IndexError:
+            pass
+
+
+
+
+
+    def adjust_slider_color(self,operation_id):
+        try:
+            previos_operation_end=self.status_panel_list[len(self.status_panel_list)-1].GetSize()[0]
+            self.time_elapsed+=previos_operation_end
+        except:
+            pass
+        new_color_panel=wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7)+self.time_elapsed,20), style=wx.SIMPLE_BORDER)
+        #new_color_panel
+        self.status_panel_list.append(new_color_panel)
+        color=self.current_operation_dict[operation_id]
+        self.status_panel_list[len(self.status_panel_list)-1].SetBackgroundColour(color) #do this while creating the panel; avoid fetching
+
+
+    def ShutdownDemo(self,event):
+        self.timer.Stop()
+        del self.timer
+        self.Destroy()
+
+
+
+    def get_relative_Y(self,y):
+        h=(self.screenHeight*y)/720
+        return h
+
+
+
+    def get_relative_X(self,x):
+        w=(self.screenWidth*x)/1280
+        return w
+
+
+
+    def speed_menu_output(self,number):
+        try:
+            self.mc.SetPlaybackRate(int(number))
+            speed_factor=int(number)
+        except ValueError:
+            self.mc.SetPlaybackRate(float(number))
+            speed_factor=float(number)
+        self.adjust_slider_color(speed_factor)
+
+
+
+    def shape_menu_output(self,shape):
+        wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
+
+    def undo_import(self,event):
+        self.imported_button_list[-1].Destroy()
+        self.imported_button_list.pop(-1)
+        self.videos_list.pop(-1)
+        print self.videos_list
+
+    def undo_sequence(self,event):
+        self.sequence_button_list[-1].Destroy()
+        self.sequence_button_list.pop(-1)
+        self.sequence_video_list.pop(-1)
+
+
+app = wx.App()
+frame = TestPanel(parent=None, id=-1, title="Test")
+#frame.ShowFullScreen(True)
+frame.Maximize(True)
+frame.SetTitle("Sports Video Editor")
+frame.Show()
+app.MainLoop()
