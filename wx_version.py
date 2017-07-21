@@ -7,6 +7,7 @@ from PIL import Image
 import numpy as np
 import time
 import wx.lib.buttons
+import shutil
 #----------------------------------------------------------------------
 
 class StaticText(wx.StaticText):
@@ -89,20 +90,25 @@ class TestPanel(wx.Frame):
 
         #Create a frame
         wx.Frame.__init__(self,parent,id,title,size=screenSize, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
-
+        self.Bind(wx.EVT_CLOSE, self.ShutdownDemo)
         self.media_player_panel= wx.Panel(self,size=(8/10*self.screenWidth,4*self.screenHeight/5), pos=(self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
-        self.sequence_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,self.screenHeight), pos=(0,0), style=wx.SIMPLE_BORDER)
+        self.sequence_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,4*self.screenHeight/5+self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
         self.sequence_video_panel.SetupScrolling()
         self.sequence_video_panel.SetBackgroundColour('#777777')
         self.video_operators_panel = wx.Panel(self,size=(8*self.screenWidth/10,self.screenHeight/5), pos=(self.screenWidth/10,4*self.screenHeight/5), style=wx.SIMPLE_BORDER)
         self.video_operators_panel.SetBackgroundColour('#FFFFFF')
-        self.imported_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,self.screenHeight), pos=(9*self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
+        self.imported_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,4*self.screenHeight/5+self.screenHeight/16), pos=(9*self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
         self.imported_video_panel.SetupScrolling()
         self.imported_video_panel.SetBackgroundColour('#777777')
         self.slider_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
         self.slider_panel.SetBackgroundColour('#AAAAAA')
 
 
+        self.import_undo_panel = wx.Panel(self,size=(1*self.screenWidth/10,11*self.screenHeight/80), pos=(9*self.screenWidth/10,69*self.screenHeight/80), style=wx.SIMPLE_BORDER)
+        self.import_undo_panel.SetBackgroundColour('#777777')
+
+        self.sequence_undo_panel = wx.Panel(self,size=(1*self.screenWidth/10,11*self.screenHeight/80), pos=(0,69*self.screenHeight/80), style=wx.SIMPLE_BORDER)
+        self.sequence_undo_panel.SetBackgroundColour('#777777')
 
         self.videos_list=[]#list that holds the paths of inserted videos
         self.sequence_video_list=[]#list that holds the paths of sequenced videos in order
@@ -115,15 +121,26 @@ class TestPanel(wx.Frame):
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
         trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
-        #play_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
+        #trim_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
         self.playBtn = trim_button
 
         exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
+        undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
+        undo_imp_but.Bind(wx.EVT_BUTTON, self.undo_import, undo_imp_but)
+
+
+        undo_seq_but = wx.Button(self.sequence_undo_panel, -1, "UNDO SEQUENCE",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
+        undo_seq_but.Bind(wx.EVT_BUTTON, self.undo_sequence, undo_seq_but)
+
+
         bSizer.Add(load_button,0,wx.ALL,5)
         bSizer.Add(trim_button,0,wx.ALL,5)
         bSizer.Add(exit_button,0,wx.ALL,5)
+        bSizer.Add(undo_imp_but,0,wx.ALL,5)
+        bSizer.Add(undo_seq_but,0,wx.ALL,5)
+
         self.SetSizer( bSizer )
 
 
@@ -297,7 +314,6 @@ class TestPanel(wx.Frame):
         if len(self.sequence_video_list)>0:
             self.sequence_video_pointer=self.sequence_video_list.index(path)
             print self.sequence_video_pointer
-        self.playBtn.Enable()
 
         if not self.mc.Load(path):
             wx.MessageBox("Unable to load %s: Unsupported format?" % path,
@@ -387,6 +403,7 @@ class TestPanel(wx.Frame):
 
 
     def ShutdownDemo(self,event):
+        shutil.rmtree('~\\Desktop\\EDOS\\temporary_images')
         self.timer.Stop()
         del self.timer
         self.Destroy()
@@ -418,6 +435,15 @@ class TestPanel(wx.Frame):
 
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
+
+    def undo_import(self):
+        self.imported_button_list[-1].Destroy()
+        self.videos_list.pop(-1)
+
+    def undo_sequence(self):
+        self.sequence_button_list[-1].Destroy()
+        self.sequence_video_list.pop(-1)
+
 
 
 
