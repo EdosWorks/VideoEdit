@@ -124,7 +124,12 @@ class TestPanel(wx.Frame):
         #trim_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
         self.playBtn = trim_button
 
-        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        text_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_text_entry, text_button)
+        self.text_but=text_button
+
+
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(710),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
         self.undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
@@ -136,6 +141,7 @@ class TestPanel(wx.Frame):
 
         bSizer.Add(load_button,0,wx.ALL,5)
         bSizer.Add(trim_button,0,wx.ALL,5)
+        bSizer.Add(text_button,0,wx.ALL,5)
         bSizer.Add(exit_button,0,wx.ALL,5)
         bSizer.Add(self.undo_imp_but,0,wx.ALL,5)
         bSizer.Add(self.undo_seq_but,0,wx.ALL,5)
@@ -286,7 +292,7 @@ class TestPanel(wx.Frame):
             self.sequence_video_position+=self.get_relative_Y(100)
             bmp = wx.Bitmap(image_path, wx.BITMAP_TYPE_ANY)
             button = wx.BitmapButton(self.sequence_video_panel,id=wx.ID_ANY,bitmap=bmp,size=(self.get_relative_X(120),self.get_relative_Y(85)))
-            Label=wx.StaticText(self.sequence_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),size=(self.get_relative_X(120),self.get_relative_Y(15)))
+            Label=wx.StaticText(self.sequence_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),size=(self.get_relative_X(120),self.get_relative_Y(15)),style=wx.ALIGN_CENTRE)
             Label.SetBackgroundColour((255,255,255))
             #button = wx.Button(self.sequence_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(120),self.get_relative_Y(105)))
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.DoLoadFile(file_path))
@@ -432,6 +438,23 @@ class TestPanel(wx.Frame):
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
+
+    def on_text_entry(self,event):
+        state = event.GetEventObject().GetValue()
+        if state==True:
+            self.mc.Pause()
+            dlg = wx.TextEntryDialog(frame, 'Enter some text','Text Entry')
+            dlg.SetValue("Default")
+            if dlg.ShowModal() == wx.ID_OK:
+                print('You entered: %s\n' % dlg.GetValue())
+            else:
+                self.text_but.SetValue(False)
+            dlg.Destroy()
+            self.mc.Play()
+        else:
+            print "button released"
+
+
     def undo_import(self,event):
         try:
 
@@ -445,6 +468,7 @@ class TestPanel(wx.Frame):
             self.imported_button_list.pop(-1)
         except IndexError:
             self.undo_imp_but.Disable()
+
 
     def undo_sequence(self,event):
         try:
