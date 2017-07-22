@@ -182,6 +182,8 @@ class TestPanel(wx.Frame):
         self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red'}
         self.status_panel_list=[]
         self.time_elapsed=0
+        self.App_folder=os.path.join(os.path.expandvars("%userprofile%"),"Desktop\\Edos\\temporary_images\\")
+
        # Create some controls
 
         try:
@@ -235,7 +237,6 @@ class TestPanel(wx.Frame):
         img=Image.fromarray(f)
         img=img.resize((100,70))
         file_name=self.get_file_name(file_path).split('.')[0]+'.png'
-        self.App_folder=os.path.join(os.path.expandvars("%userprofile%"),"Desktop\\Edos\\temporary_images\\")
         if not os.path.exists(self.App_folder):
             os.makedirs(self.App_folder)
         image_path = os.path.expanduser(self.App_folder+file_name)
@@ -404,13 +405,6 @@ class TestPanel(wx.Frame):
         self.status_panel_list[len(self.status_panel_list)-1].SetBackgroundColour(color) #do this while creating the panel; avoid fetching
 
 
-    def ShutdownDemo(self,event):
-        shutil.rmtree(self.App_folder)
-        self.timer.Stop()
-        del self.timer
-        self.Destroy()
-
-
 
     def get_relative_Y(self,y):
         h=(self.screenHeight*y)/720
@@ -465,6 +459,14 @@ class TestPanel(wx.Frame):
         except IndexError:
             self.undo_seq_but.Disable()
 
+
+
+    def ShutdownDemo(self,event):
+        if os.path.exists(self.App_folder):
+            shutil.rmtree(self.App_folder)
+        self.timer.Stop()
+        del self.timer
+        self.Destroy()
 
 
 
