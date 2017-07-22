@@ -127,19 +127,18 @@ class TestPanel(wx.Frame):
         exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
-        undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
-        undo_imp_but.Bind(wx.EVT_BUTTON, self.undo_import, undo_imp_but)
+        self.undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
+        self.undo_imp_but.Bind(wx.EVT_BUTTON, self.undo_import, self.undo_imp_but)
 
-
-        undo_seq_but = wx.Button(self.sequence_undo_panel, -1, "UNDO SEQUENCE",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
-        undo_seq_but.Bind(wx.EVT_BUTTON, self.undo_sequence, undo_seq_but)
+        self.undo_seq_but = wx.Button(self.sequence_undo_panel, -1, "UNDO SEQUENCE",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
+        self.undo_seq_but.Bind(wx.EVT_BUTTON, self.undo_sequence, self.undo_seq_but)
 
 
         bSizer.Add(load_button,0,wx.ALL,5)
         bSizer.Add(trim_button,0,wx.ALL,5)
         bSizer.Add(exit_button,0,wx.ALL,5)
-        bSizer.Add(undo_imp_but,0,wx.ALL,5)
-        bSizer.Add(undo_seq_but,0,wx.ALL,5)
+        bSizer.Add(self.undo_imp_but,0,wx.ALL,5)
+        bSizer.Add(self.undo_seq_but,0,wx.ALL,5)
 
         self.SetSizer( bSizer )
 
@@ -216,16 +215,16 @@ class TestPanel(wx.Frame):
 
     def import_videos(self,file_path):
         if(self.check_file_existance(file_path,1) and self.get_file_name(file_path)):
+            self.undo_imp_but.Enable()
             self.imported_video_position+=self.get_relative_Y(100)
             button_image=str(self.get_image_from_video(file_path))
             bmp = wx.Bitmap(button_image, wx.BITMAP_TYPE_ANY)
             #button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
-            button = wx.BitmapButton(self.imported_video_panel,id=wx.ID_ANY, bitmap=bmp,pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(120),self.get_relative_Y(100)))
-            Label=wx.StaticText(self.imported_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(120),self.get_relative_Y(15)))
+            button = wx.BitmapButton(self.imported_video_panel,id=wx.ID_ANY, bitmap=bmp,size=(self.get_relative_X(120),self.get_relative_Y(85)))
+            Label=wx.StaticText(self.imported_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),size=(self.get_relative_X(120),self.get_relative_Y(15)))
             Label.SetBackgroundColour((255,255,255))
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path,button_image))
             self.imported_button_list.append([button,Label])
-            self.videos_list.append(file_path)
             self.show_buttons(1)
 
 
@@ -236,7 +235,10 @@ class TestPanel(wx.Frame):
         img=Image.fromarray(f)
         img=img.resize((100,70))
         file_name=self.get_file_name(file_path).split('.')[0]+'.png'
-        image_path = os.path.expanduser("~\\Desktop\\EDOS\\temporary_images\\"+file_name)
+        self.App_folder=os.path.join(os.path.expandvars("%userprofile%"),"Desktop\\Edos\\temporary_images\\")
+        if not os.path.exists(self.App_folder):
+            os.makedirs(self.App_folder)
+        image_path = os.path.expanduser(self.App_folder+file_name)
         img.save(image_path)
         return image_path
 
@@ -259,35 +261,35 @@ class TestPanel(wx.Frame):
     def show_buttons(self,id):
         if (id==1):
             self.imported_video_panel.SetupScrolling()
-            iSizer = wx.BoxSizer( wx.VERTICAL )
+            self.iSizer = wx.BoxSizer( wx.VERTICAL )
             for i in self.imported_button_list:
-                iSizer.Add( i[0], 0, wx.ALL, 0 )
-                iSizer.Add(i[1],0,wx.ALL,0)
-            self.imported_video_panel.SetSizer(iSizer)
+                self.iSizer.Add( i[0], 0, wx.ALL, 0 )
+                self.iSizer.Add(i[1],0,wx.ALL,0)
+            self.imported_video_panel.SetSizer(self.iSizer)
         elif (id==2):
             self.sequence_video_panel.SetupScrolling()
-            sSizer = wx.BoxSizer( wx.VERTICAL )
+            self.sSizer = wx.BoxSizer( wx.VERTICAL )
             for i in self.sequence_button_list:
                 #if self.sequence_button_list.index(i)!=0:
                     #i.Disable()
-                sSizer.Add( i[0], 0, wx.ALL, 0 )
-                sSizer.Add(i[1],0,wx.ALL,0)
-            self.sequence_video_panel.SetSizer(sSizer)
+                self.sSizer.Add( i[0], 0, wx.ALL, 0 )
+                self.sSizer.Add(i[1],0,wx.ALL,0)
+            self.sequence_video_panel.SetSizer(self.sSizer)
 
 
 
 
     def add_video_to_sequence(self,file_path,image_path):
         if(self.check_file_existance(file_path,2) and self.get_file_name(file_path)):
+            self.undo_seq_but.Enable()
             self.sequence_video_position+=self.get_relative_Y(100)
             bmp = wx.Bitmap(image_path, wx.BITMAP_TYPE_ANY)
-            button = wx.BitmapButton(self.sequence_video_panel,id=wx.ID_ANY,bitmap=bmp,pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(120),self.get_relative_Y(105)))
-            Label=wx.StaticText(self.sequence_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.sequence_video_position),size=(self.get_relative_X(120),self.get_relative_Y(15)))
+            button = wx.BitmapButton(self.sequence_video_panel,id=wx.ID_ANY,bitmap=bmp,size=(self.get_relative_X(120),self.get_relative_Y(85)))
+            Label=wx.StaticText(self.sequence_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),size=(self.get_relative_X(120),self.get_relative_Y(15)))
             Label.SetBackgroundColour((255,255,255))
             #button = wx.Button(self.sequence_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(0),self.sequence_video_position),size=(self.get_relative_X(120),self.get_relative_Y(105)))
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.DoLoadFile(file_path))
             self.sequence_button_list.append([button,Label])
-            self.sequence_video_list.append(file_path)
             self.show_buttons(2)
 
 
@@ -403,7 +405,7 @@ class TestPanel(wx.Frame):
 
 
     def ShutdownDemo(self,event):
-        shutil.rmtree('~\\Desktop\\EDOS\\temporary_images')
+        shutil.rmtree(self.App_folder)
         self.timer.Stop()
         del self.timer
         self.Destroy()
@@ -436,14 +438,32 @@ class TestPanel(wx.Frame):
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
-    def undo_import(self):
-        self.imported_button_list[-1].Destroy()
-        self.videos_list.pop(-1)
+    def undo_import(self,event):
+        try:
 
-    def undo_sequence(self):
-        self.sequence_button_list[-1].Destroy()
-        self.sequence_video_list.pop(-1)
+            #self.imported_button_list[-1][0].Destroy()
+            #self.imported_button_list[-1][1].Destroy()
+            self.videos_list.pop(-1)
+            self.iSizer.Hide(2*len(self.videos_list)+1)
+            self.iSizer.Hide(2*len(self.videos_list))
+            self.iSizer.Remove(2*len(self.videos_list)+1)
+            self.iSizer.Remove(2*len(self.videos_list))
+            self.imported_button_list.pop(-1)
+        except IndexError:
+            self.undo_imp_but.Disable()
 
+    def undo_sequence(self,event):
+        try:
+            #self.sequence_button_list[-1][0].Destroy()
+            #self.sequence_button_list[-1][1].Destroy()
+            self.sequence_video_list.pop(-1)
+            self.sSizer.Hide(2*len(self.sequence_video_list)+1)
+            self.sSizer.Hide(2*len(self.sequence_video_list))
+            self.sSizer.Remove(2*len(self.sequence_video_list)+1)
+            self.sSizer.Remove(2*len(self.sequence_video_list))
+            self.sequence_button_list.pop(-1)
+        except IndexError:
+            self.undo_seq_but.Disable()
 
 
 
