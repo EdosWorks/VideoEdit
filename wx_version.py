@@ -221,7 +221,7 @@ class TestPanel(wx.Frame):
             bmp = wx.Bitmap(button_image, wx.BITMAP_TYPE_ANY)
             #button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
             button = wx.BitmapButton(self.imported_video_panel,id=wx.ID_ANY, bitmap=bmp,size=(self.get_relative_X(120),self.get_relative_Y(85)))
-            Label=wx.StaticText(self.imported_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),size=(self.get_relative_X(120),self.get_relative_Y(15)))
+            Label=wx.StaticText(self.imported_video_panel,id=wx.ID_ANY, label=self.get_file_name(file_path),size=(self.get_relative_X(120),self.get_relative_Y(15)),style=wx.ALIGN_CENTRE)
             Label.SetBackgroundColour((255,255,255))
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path,button_image))
             self.imported_button_list.append([button,Label])
