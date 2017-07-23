@@ -110,9 +110,6 @@ class TestPanel(wx.Frame):
         self.sequence_undo_panel = wx.Panel(self,size=(1*self.screenWidth/10,11*self.screenHeight/80), pos=(0,69*self.screenHeight/80), style=wx.SIMPLE_BORDER)
         self.sequence_undo_panel.SetBackgroundColour('#777777')
 
-        self.videos_list=[]#list that holds the paths of inserted videos
-        self.sequence_video_list=[]#list that holds the paths of sequenced videos in order
-        self.sequence_video_pointer=0
 
         bSizer = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -120,16 +117,18 @@ class TestPanel(wx.Frame):
         load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        trim_button = wx.Button(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
-        #trim_button.Bind(wx.EVT_BUTTON, self.OnPlay, play_button)
+        trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        trim_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_trim, trim_button)
         self.playBtn = trim_button
 
         text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         text_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_text_entry, text_button)
         self.text_but=text_button
 
+        done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(690),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        done_button.Bind(wx.EVT_BUTTON, self.on_done, done_button)
 
-        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(710),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(810),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
         self.undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
@@ -150,10 +149,8 @@ class TestPanel(wx.Frame):
 
 
 
-        x=dropDown_menu(self.video_operators_panel,['0.25','0.5','1','1.5','2'])
-        y=dropDown_menu(self.video_operators_panel,['square','triangle','rectangle','circle'])
-
-
+        self.speed_menu=dropDown_menu(self.video_operators_panel,['0.25','0.5','1','1.5','2'])
+        self.shape_menu=dropDown_menu(self.video_operators_panel,['square','triangle','rectangle','circle'])
 
         wx.CallAfter(self.DoLoadFile, os.path.abspath("data/testmovie.mpg")) #check
 
@@ -175,6 +172,10 @@ class TestPanel(wx.Frame):
         self.SetSizer( bSizer )
 
 
+        self.videos_list=[]#list that holds the paths of inserted videos
+        self.sequence_video_list=[]#list that holds the paths of sequenced videos in order
+        self.sequence_video_pointer=0
+
 
         self.imported_button_list=[]
         self.sequence_button_list=[]
@@ -183,12 +184,24 @@ class TestPanel(wx.Frame):
         self.sequence_video_position=0
 
 
+        self.preferance_list=['trim','text','speed']
+        self.operations_performed_list=[]
+        self.operations_id_stack=[]
+
 
         self.play_flag=0
-        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red'}
+        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink'}
         self.status_panel_list=[]
         self.time_elapsed=0
         self.App_folder=os.path.join(os.path.expandvars("%userprofile%"),"Desktop\\Edos\\temporary_images\\")
+
+
+        self.start_time=0
+        self.end_time=0
+        self.trim_value=0
+        self.text_value=False
+        self.speed_value=1
+
 
        # Create some controls
 
@@ -356,6 +369,8 @@ class TestPanel(wx.Frame):
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             self.adjust_slider_color(1)
+            self.speed_value=1
+
 
 
 
@@ -377,6 +392,7 @@ class TestPanel(wx.Frame):
         self.slider.SetValue(offset)
         if self.mc.Tell()>0 and self.play_flag==0:
             self.play()
+            self.operations_id_stack.append(1)
             self.play_flag=1
         #if int(self.mc.Tell()/1000)==int(self.mc.Length()/1000) and self.mc.Length()>0:
         #    try:
@@ -431,29 +447,68 @@ class TestPanel(wx.Frame):
         except ValueError:
             self.mc.SetPlaybackRate(float(number))
             speed_factor=float(number)
-        self.adjust_slider_color(speed_factor)
+        self.speed_value=speed_factor
+        if -5 not in self.operations_id_stack:
+            self.adjust_slider_color(speed_factor)
+        else:
+            self.adjust_slider_color(-5)
+        self.operations_id_stack.append(speed_factor)
+        self.add_operation()
 
 
 
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
+    def on_trim(self,event):
+        state = event.GetEventObject().GetValue()
+        if state==True:
+            self.add_operation()
+            self.adjust_slider_color(0)
+            self.text_but.Disable()
+            self.speed_menu.cb.Disable()
+            self.shape_menu.cb.Disable()
+            self.operations_id_stack.append(0)
+            self.trim_value=1
+
+        else:
+            self.operations_id_stack.pop(-1)
+            self.adjust_slider_color(self.operations_id_stack[-1])
+            self.text_but.Enable()
+            self.speed_menu.cb.Enable()
+            self.shape_menu.cb.Enable()
+            self.add_operation()
+            self.trim_value=0
 
     def on_text_entry(self,event):
         state = event.GetEventObject().GetValue()
         if state==True:
             self.mc.Pause()
             dlg = wx.TextEntryDialog(frame, 'Enter some text','Text Entry')
-            dlg.SetValue("Default")
             if dlg.ShowModal() == wx.ID_OK:
-                print('You entered: %s\n' % dlg.GetValue())
+                self.add_operation()
+                self.text_value=str(dlg.GetValue())
+                self.adjust_slider_color(-5)
+                self.operations_id_stack.append(-5)
+                #print('You entered: %s\n' % dlg.GetValue())
             else:
                 self.text_but.SetValue(False)
             dlg.Destroy()
             self.mc.Play()
         else:
-            print "button released"
+            self.add_operation()
+            self.operations_id_stack.pop(self.operations_id_stack.index(-5))
+            self.adjust_slider_color(self.operations_id_stack[-1])
+            self.text_value=False
 
+    def add_operation(self):
+        self.end_time=self.mc.Tell()
+        current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value]
+        self.operations_performed_list.append(current_operation_details)
+        self.start_time=self.end_time
+
+    def on_done(self,event):
+        print self.operations_performed_list
 
     def undo_import(self,event):
         try:
