@@ -378,13 +378,9 @@ class TestPanel(wx.Frame):
 
     def OnSeek(self, evt):
         offset = self.slider.GetValue()
-        self.det()
         self.mc.Seek(offset)
 
 
-
-    def det(self):
-        pass
 
 
     def OnTimer(self, evt):
@@ -406,7 +402,8 @@ class TestPanel(wx.Frame):
         except ZeroDivisionError:
             pass
         try:
-            self.status_panel_list[len(self.status_panel_list)-1].SetSize((value-self.time_elapsed,10))
+            if value!=0:
+                self.status_panel_list[len(self.status_panel_list)-1].SetSize((value-self.time_elapsed,10))
         except IndexError:
             pass
 
