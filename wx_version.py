@@ -119,14 +119,18 @@ class TestPanel(wx.Frame):
 
         trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         trim_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_trim, trim_button)
-        self.playBtn = trim_button
+        self.trim_but = trim_button
 
-        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(450),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         text_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_text_entry, text_button)
         self.text_but=text_button
 
-        done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(690),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         done_button.Bind(wx.EVT_BUTTON, self.on_done, done_button)
+
+        self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(690),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.undo_op_but.Bind(wx.EVT_BUTTON, self.undo_operation, self.undo_op_but)
+
 
         exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(810),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
@@ -144,13 +148,15 @@ class TestPanel(wx.Frame):
         bSizer.Add(exit_button,0,wx.ALL,5)
         bSizer.Add(self.undo_imp_but,0,wx.ALL,5)
         bSizer.Add(self.undo_seq_but,0,wx.ALL,5)
+        bSizer.Add(done_button,0,wx.ALL,5)
+        bSizer.Add(self.undo_op_but,0,wx.ALL,5)
 
         self.SetSizer( bSizer )
 
 
 
         self.speed_menu=dropDown_menu(self.video_operators_panel,['0.25','0.5','1','1.5','2'])
-        self.shape_menu=dropDown_menu(self.video_operators_panel,['square','triangle','rectangle','circle'])
+        #self.shape_menu=dropDown_menu(self.video_operators_panel,['square','triangle','rectangle','circle'])
 
         wx.CallAfter(self.DoLoadFile, os.path.abspath("data/testmovie.mpg")) #check
 
@@ -184,7 +190,7 @@ class TestPanel(wx.Frame):
         self.sequence_video_position=0
 
 
-        self.preferance_list=['trim','text','speed']
+        self.operation_duration_list=[]
         self.operations_performed_list=[]
         self.operations_id_stack=[]
 
@@ -208,9 +214,7 @@ class TestPanel(wx.Frame):
         try:
             self.media_player_panel.mc = wx.media.MediaCtrl(self.media_player_panel, style=wx.SIMPLE_BORDER,)
             self.media_player_panel.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
-            but = wx.Button(self.imported_video_panel,label="Button 1",pos=(self.get_relative_X(20),self.imported_video_position),size=(self.get_relative_X(50),self.get_relative_X(50)))
             msizer=wx.BoxSizer(wx.VERTICAL)
-            msizer.Add(but,0,flag=wx.EXPAND)
             self.media_player_panel.SetSizer(msizer)
             self.mc=self.media_player_panel.mc
             self.mc.ShowPlayerControls()
@@ -261,7 +265,6 @@ class TestPanel(wx.Frame):
         image_path = os.path.expanduser(self.App_folder+file_name)
         img.save(image_path)
         return image_path
-
 
 
 
@@ -355,9 +358,7 @@ class TestPanel(wx.Frame):
 
 
     def OnMediaLoaded(self, evt):
-        self.playBtn.Enable()
-
-
+        pass
 
     def play(self):
         if not self.mc.Play():
@@ -370,7 +371,6 @@ class TestPanel(wx.Frame):
             self.slider.SetRange(0, self.mc.Length())
             self.adjust_slider_color(1)
             self.speed_value=1
-
 
 
 
@@ -403,7 +403,7 @@ class TestPanel(wx.Frame):
             pass
         try:
             if value!=0:
-                self.status_panel_list[len(self.status_panel_list)-1].SetSize((value-self.time_elapsed,10))
+                self.status_panel_list[-1].SetSize((value-self.time_elapsed,10))
         except IndexError:
             pass
 
@@ -412,16 +412,18 @@ class TestPanel(wx.Frame):
 
 
     def adjust_slider_color(self,operation_id):
+        previos_operation_end=0
         try:
-            previos_operation_end=self.status_panel_list[len(self.status_panel_list)-1].GetSize()[0]
+            previos_operation_end=self.status_panel_list[-1].GetSize()[0]
             self.time_elapsed+=previos_operation_end
         except:
             pass
+        self.operation_duration_list.append([self.mc.Tell(),previos_operation_end])
         new_color_panel=wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7)+self.time_elapsed,20), style=wx.SIMPLE_BORDER)
         #new_color_panel
         self.status_panel_list.append(new_color_panel)
         color=self.current_operation_dict[operation_id]
-        self.status_panel_list[len(self.status_panel_list)-1].SetBackgroundColour(color) #do this while creating the panel; avoid fetching
+        self.status_panel_list[-1].SetBackgroundColour(color) #do this while creating the panel; avoid fetching
 
 
 
@@ -444,13 +446,12 @@ class TestPanel(wx.Frame):
         except ValueError:
             self.mc.SetPlaybackRate(float(number))
             speed_factor=float(number)
+        self.add_operation()
         self.speed_value=speed_factor
-        if -5 not in self.operations_id_stack:
+        if self.text_value==False:
             self.adjust_slider_color(speed_factor)
         else:
             self.adjust_slider_color(-5)
-        self.operations_id_stack.append(speed_factor)
-        self.add_operation()
 
 
 
@@ -464,16 +465,17 @@ class TestPanel(wx.Frame):
             self.adjust_slider_color(0)
             self.text_but.Disable()
             self.speed_menu.cb.Disable()
-            self.shape_menu.cb.Disable()
-            self.operations_id_stack.append(0)
+            #self.shape_menu.cb.Disable()
             self.trim_value=1
 
         else:
-            self.operations_id_stack.pop(-1)
-            self.adjust_slider_color(self.operations_id_stack[-1])
+            if self.text_value!=False:
+                self.adjust_slider_color(-5)
+            else:
+                self.adjust_slider_color(self.mc.GetPlaybackRate())
             self.text_but.Enable()
             self.speed_menu.cb.Enable()
-            self.shape_menu.cb.Enable()
+            #self.shape_menu.cb.Enable()
             self.add_operation()
             self.trim_value=0
 
@@ -486,7 +488,6 @@ class TestPanel(wx.Frame):
                 self.add_operation()
                 self.text_value=str(dlg.GetValue())
                 self.adjust_slider_color(-5)
-                self.operations_id_stack.append(-5)
                 #print('You entered: %s\n' % dlg.GetValue())
             else:
                 self.text_but.SetValue(False)
@@ -494,8 +495,7 @@ class TestPanel(wx.Frame):
             self.mc.Play()
         else:
             self.add_operation()
-            self.operations_id_stack.pop(self.operations_id_stack.index(-5))
-            self.adjust_slider_color(self.operations_id_stack[-1])
+            self.adjust_slider_color(self.mc.GetPlaybackRate())
             self.text_value=False
 
     def add_operation(self):
@@ -506,6 +506,41 @@ class TestPanel(wx.Frame):
 
     def on_done(self,event):
         print self.operations_performed_list
+
+
+    def undo_operation(self,event):
+        try:
+            self.mc.Seek(self.operation_duration_list[-1][0])
+            self.time_elapsed-=self.operation_duration_list[-1][1]
+            self.operation_duration_list.pop(-1)
+            last_panel=self.status_panel_list.pop(-1)
+            last_panel.Destroy()
+            previos_operation_data=self.operations_performed_list.pop(-1)
+            self.start_time=previos_operation_data[0]
+            self.trim_value=previos_operation_data[2]
+            self.text_value=previos_operation_data[3]
+            self.speed_value=previos_operation_data[4]
+            #self.operations_id_stack.pop(-1)
+            if self.trim_value==1:
+                self.trim_but.SetValue(True)
+                self.text_but.Disable()
+                self.speed_menu.cb.Disable()
+            else:
+                self.trim_but.SetValue(False)
+                self.text_but.Enable()
+                self.speed_menu.cb.Enable()
+
+            if self.text_value!=False:
+                self.text_but.SetValue(True)
+            else:
+                self.text_but.SetValue(False)
+
+            self.mc.SetPlaybackRate(self.speed_value)
+            print self.speed_value
+
+        except:
+            self.mc.Seek(0)
+            self.adjust_slider_color(1)
 
     def undo_import(self,event):
         try:
@@ -548,7 +583,6 @@ class TestPanel(wx.Frame):
 
 app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Test")
-#frame.ShowFullScreen(True)
 frame.Maximize(True)
 frame.SetTitle("Sports Video Editor")
 frame.Show()
