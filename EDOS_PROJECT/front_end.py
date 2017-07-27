@@ -8,7 +8,7 @@ import numpy as np
 import time
 import wx.lib.buttons
 import shutil
-import back_end
+#import back_end
 #----------------------------------------------------------------------
 
 class StaticText(wx.StaticText):
@@ -132,8 +132,8 @@ class TestPanel(wx.Frame):
         text_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_text_entry, text_button)
         self.text_but=text_button
 
-        done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(570),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
-        done_button.Bind(wx.EVT_BUTTON, self.on_done, done_button)
+        self.done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(570),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.done_button.Bind(wx.EVT_BUTTON, self.on_done, self.done_button)
 
         self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(690),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         self.undo_op_but.Bind(wx.EVT_BUTTON, self.undo_operation, self.undo_op_but)
@@ -155,7 +155,7 @@ class TestPanel(wx.Frame):
         bSizer.Add(exit_button,0,wx.ALL,5)
         bSizer.Add(self.undo_imp_but,0,wx.ALL,5)
         bSizer.Add(self.undo_seq_but,0,wx.ALL,5)
-        bSizer.Add(done_button,0,wx.ALL,5)
+        bSizer.Add(self.done_button,0,wx.ALL,5)
         bSizer.Add(self.undo_op_but,0,wx.ALL,5)
 
         self.SetSizer( bSizer )
@@ -236,6 +236,7 @@ class TestPanel(wx.Frame):
             self.media_player_panel.Destroy()
             raise
         self.Bind(wx.media.EVT_MEDIA_LOADED, self.OnMediaLoaded)
+        self.mc.Bind(wx.media.EVT_MEDIA_STOP,self.on_media_finished)
 
 ############################################METHODS######################################################################
 
@@ -251,6 +252,7 @@ class TestPanel(wx.Frame):
             return False
 
 
+
     def import_videos(self,file_path):
         if(self.check_file_existance(file_path,1) and self.get_file_name(file_path)):
             self.undo_imp_but.Enable()
@@ -264,6 +266,7 @@ class TestPanel(wx.Frame):
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path,button_image))
             self.imported_button_list.append([button,Label])
             self.show_buttons(1)
+
 
 
     def get_image_from_video(self,file_path):
@@ -314,7 +317,6 @@ class TestPanel(wx.Frame):
 
 
 
-
     def add_video_to_sequence(self,file_path,image_path):
         if(self.check_file_existance(file_path,2) and self.get_file_name(file_path)):
             self.undo_seq_but.Enable()
@@ -327,7 +329,6 @@ class TestPanel(wx.Frame):
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.DoLoadFile(file_path))
             self.sequence_button_list.append([button,Label])
             self.show_buttons(2)
-
 
 
 
@@ -351,7 +352,7 @@ class TestPanel(wx.Frame):
     def DoLoadFile(self, path):
         if len(self.sequence_video_list)>0:
             self.sequence_video_pointer=self.sequence_video_list.index(path)
-            print self.sequence_video_pointer
+            #print self.sequence_video_pointer
 
         if not self.mc.Load(path):
             wx.MessageBox("Unable to load %s: Unsupported format?" % path,
@@ -373,6 +374,8 @@ class TestPanel(wx.Frame):
     def OnMediaLoaded(self, evt):
         pass
 
+
+
     def play(self):
         if not self.mc.Play():
             wx.MessageBox("Unable to Play media : Unsupported format?",
@@ -387,12 +390,9 @@ class TestPanel(wx.Frame):
 
 
 
-
-
     def OnSeek(self, evt):
         offset = self.slider.GetValue()
         self.mc.Seek(offset)
-
 
 
 
@@ -402,6 +402,7 @@ class TestPanel(wx.Frame):
         if self.mc.Tell()>0 and self.play_flag==0:
             self.play()
             self.play_flag=1
+            self.done_button.Disable()
         #if int(self.mc.Tell()/1000)==int(self.mc.Length()/1000) and self.mc.Length()>0:
         #    try:
         #        self.sequence_video_pointer+=2
@@ -418,8 +419,6 @@ class TestPanel(wx.Frame):
                 self.status_panel_list[-1].SetSize((value-self.time_elapsed,10))
         except IndexError:
             pass
-
-
 
 
 
@@ -470,6 +469,8 @@ class TestPanel(wx.Frame):
     def shape_menu_output(self,shape):
         wx.MessageDialog(None,shape, 'SHAPE SELECTED', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
+
+
     def on_trim(self,event):
         state = event.GetEventObject().GetValue()
         if state==True:
@@ -490,6 +491,8 @@ class TestPanel(wx.Frame):
             #self.shape_menu.cb.Enable()
             self.add_operation()
             self.trim_value=0
+
+
 
     def on_text_entry(self,event):
         state = event.GetEventObject().GetValue()
@@ -514,14 +517,21 @@ class TestPanel(wx.Frame):
             self.text_value=False
             self.label.SetLabel('')
 
+
+
     def add_operation(self):
         self.end_time=self.mc.Tell()
         current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value]
         self.operations_performed_list.append(current_operation_details)
         self.start_time=self.end_time
 
+
+
     def on_done(self,event):
-        print self.operations_performed_list
+        #print self.operations_performed_list
+        self.sequence_video_pointer+=1
+        self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
+        print self.sequence_video_pointer
 
 
     def undo_operation(self,event):
@@ -554,11 +564,12 @@ class TestPanel(wx.Frame):
                 self.label.SetLabel('')
 
             self.mc.SetPlaybackRate(self.speed_value)
-            print self.speed_value
 
         except:
             self.mc.Seek(0)
             self.adjust_slider_color(1)
+
+
 
     def undo_import(self,event):
         try:
@@ -575,6 +586,7 @@ class TestPanel(wx.Frame):
             self.undo_imp_but.Disable()
 
 
+
     def undo_sequence(self,event):
         try:
             #self.sequence_button_list[-1][0].Destroy()
@@ -587,6 +599,11 @@ class TestPanel(wx.Frame):
             self.sequence_button_list.pop(-1)
         except IndexError:
             self.undo_seq_but.Disable()
+
+
+    def on_media_finished(self,event):
+        self.done_button.Enable()
+
 
 
 
