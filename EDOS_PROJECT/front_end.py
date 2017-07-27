@@ -46,7 +46,7 @@ class dropDown_menu:
 
 
         sampleList = []
-        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(50)),
+        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(90)),
                               size=(self.get_relative_X(100),self.get_relative_Y(50)),
                               choices=sampleList)
         self.widgetMaker(self.cb, option_list)
@@ -92,18 +92,24 @@ class TestPanel(wx.Frame):
         #Create a frame
         wx.Frame.__init__(self,parent,id,title,size=screenSize, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
         self.Bind(wx.EVT_CLOSE, self.ShutdownDemo)
-        self.media_player_panel= wx.Panel(self,size=(8/10*self.screenWidth,4*self.screenHeight/5), pos=(self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
+        self.media_player_panel= wx.Panel(self,size=(8/10*self.screenWidth,3.7*self.screenHeight/5), pos=(self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
+
         self.sequence_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,4*self.screenHeight/5+self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
         self.sequence_video_panel.SetupScrolling()
         self.sequence_video_panel.SetBackgroundColour('#777777')
-        self.video_operators_panel = wx.Panel(self,size=(8*self.screenWidth/10,self.screenHeight/5), pos=(self.screenWidth/10,4*self.screenHeight/5), style=wx.SIMPLE_BORDER)
+
+        self.video_operators_panel = wx.Panel(self,size=(8*self.screenWidth/10,1.3*self.screenHeight/5), pos=(self.screenWidth/10,3.7*self.screenHeight/5), style=wx.SIMPLE_BORDER)
         self.video_operators_panel.SetBackgroundColour('#FFFFFF')
+
         self.imported_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,4*self.screenHeight/5+self.screenHeight/16), pos=(9*self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
         self.imported_video_panel.SetupScrolling()
         self.imported_video_panel.SetBackgroundColour('#777777')
-        self.slider_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
+
+        self.slider_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,self.screenHeight/16), pos=(0,1.1*self.screenHeight/20), style=wx.SIMPLE_BORDER)
         self.slider_panel.SetBackgroundColour('#AAAAAA')
 
+        self.text_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,1.1*self.screenHeight/20), pos=(0,0), style=wx.SIMPLE_BORDER)
+        self.text_panel.SetBackgroundColour('#FFFFFF')
 
         self.import_undo_panel = wx.Panel(self,size=(1*self.screenWidth/10,11*self.screenHeight/80), pos=(9*self.screenWidth/10,69*self.screenHeight/80), style=wx.SIMPLE_BORDER)
         self.import_undo_panel.SetBackgroundColour('#777777')
@@ -115,25 +121,25 @@ class TestPanel(wx.Frame):
         bSizer = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         trim_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_trim, trim_button)
         self.trim_but = trim_button
 
-        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(450),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(450),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         text_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_text_entry, text_button)
         self.text_but=text_button
 
-        done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(570),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(570),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         done_button.Bind(wx.EVT_BUTTON, self.on_done, done_button)
 
-        self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(690),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(690),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         self.undo_op_but.Bind(wx.EVT_BUTTON, self.undo_operation, self.undo_op_but)
 
 
-        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(810),self.get_relative_Y(47)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(810),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
         self.undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
@@ -193,7 +199,6 @@ class TestPanel(wx.Frame):
 
         self.operation_duration_list=[]
         self.operations_performed_list=[]
-        self.operations_id_stack=[]
 
 
         self.play_flag=0
@@ -210,11 +215,18 @@ class TestPanel(wx.Frame):
         self.speed_value=1
 
 
+        Label=wx.StaticText(self.text_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
+        font = wx.Font(25, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
+        Label.SetFont(font)
+        self.label=Label
+        self.label.SetBackgroundColour('black')
+        self.label.SetForegroundColour('white')
+
        # Create some controls
 
         try:
             self.media_player_panel.mc = wx.media.MediaCtrl(self.media_player_panel, style=wx.SIMPLE_BORDER,)
-            self.media_player_panel.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
+            self.media_player_panel.SetInitialSize((8*self.screenWidth/10,3.7*self.screenHeight/5))
             msizer=wx.BoxSizer(wx.VERTICAL)
             self.media_player_panel.SetSizer(msizer)
             self.mc=self.media_player_panel.mc
@@ -346,7 +358,7 @@ class TestPanel(wx.Frame):
                           "ERROR",
                           wx.ICON_ERROR | wx.OK)
         else:
-            self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
+            self.mc.SetInitialSize((8*self.screenWidth/10,3.7*self.screenHeight/5))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             self.play_flag=0
@@ -367,7 +379,7 @@ class TestPanel(wx.Frame):
             "ERROR",
             wx.ICON_ERROR | wx.OK)
         else:
-            self.mc.SetInitialSize((self.get_relative_X(1025),self.get_relative_Y(575)))
+            self.mc.SetInitialSize((8*self.screenWidth/10,3.7*self.screenHeight/5))
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             self.adjust_slider_color(1)
@@ -389,7 +401,6 @@ class TestPanel(wx.Frame):
         self.slider.SetValue(offset)
         if self.mc.Tell()>0 and self.play_flag==0:
             self.play()
-            self.operations_id_stack.append(1)
             self.play_flag=1
         #if int(self.mc.Tell()/1000)==int(self.mc.Length()/1000) and self.mc.Length()>0:
         #    try:
@@ -489,7 +500,10 @@ class TestPanel(wx.Frame):
                 self.add_operation()
                 self.text_value=str(dlg.GetValue())
                 self.adjust_slider_color(-5)
-                #print('You entered: %s\n' % dlg.GetValue())
+                self.label.SetLabel(self.text_value)
+
+                #Label.SetBackgroundColour((255,255,255))
+
             else:
                 self.text_but.SetValue(False)
             dlg.Destroy()
@@ -498,6 +512,7 @@ class TestPanel(wx.Frame):
             self.add_operation()
             self.adjust_slider_color(self.mc.GetPlaybackRate())
             self.text_value=False
+            self.label.SetLabel('')
 
     def add_operation(self):
         self.end_time=self.mc.Tell()
@@ -533,8 +548,10 @@ class TestPanel(wx.Frame):
 
             if self.text_value!=False:
                 self.text_but.SetValue(True)
+                self.label.SetLabel(str(self.text_value))
             else:
                 self.text_but.SetValue(False)
+                self.label.SetLabel('')
 
             self.mc.SetPlaybackRate(self.speed_value)
             print self.speed_value
@@ -579,7 +596,6 @@ class TestPanel(wx.Frame):
         self.timer.Stop()
         del self.timer
         self.Destroy()
-
 
 app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Test")
