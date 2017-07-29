@@ -92,8 +92,22 @@ class ParallelWindow(wx.Frame):
         self.screenWidth = frame.screenWidth
         self.screenHeight = frame.screenHeight
         wx.Frame.__init__(self,parent,id,title,size=(8*self.screenWidth/10,3.2*self.screenHeight/5), pos=(self.screenWidth/10,self.screenHeight/28),  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
-    def add_text_to_screen(self,text,x,y):
-        pass
+        self.panel=wx.Panel(self,-1,size=(0,0))
+        Label=wx.StaticText(self.panel,id=wx.ID_ANY, label="",style=wx.ALIGN_CENTRE)
+        font = wx.Font(15, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
+        Label.SetFont(font)
+        self.label=Label
+        self.label.SetBackgroundColour('black')
+        self.label.SetForegroundColour('white')
+    def add_text_to_screen(self,text_value,text_position):
+        #panel.SetBackgroundColour('red')
+        self.label.SetLabelText(text_value)
+        self.panel.SetSize(self.label.GetSize())
+        self.panel.SetPosition(text_position)
+    def set_zoom(self,event):
+        parallel_frame.Show()
+        plt.close()
+
 
 
 class TestPanel(wx.Frame):
@@ -235,7 +249,7 @@ class TestPanel(wx.Frame):
         self.speed_value=1
 
 
-        Label=wx.StaticText(self.media_player_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
+        Label=wx.StaticText(self.text_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
         font = wx.Font(25, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
         Label.SetFont(font)
         self.label=Label
@@ -432,12 +446,7 @@ class TestPanel(wx.Frame):
             self.play()
             self.play_flag=1
             self.done_button.Disable()
-        #if int(self.mc.Tell()/1000)==int(self.mc.Length()/1000) and self.mc.Length()>0:
-        #    try:
-        #        self.sequence_video_pointer+=2
-        #        self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
-        #    except IndexError:
-        #        pass
+
         value=0
         try:
             value=(17.2/17.5)*(offset*self.screenWidth*8)/(10*self.mc.Length())
@@ -536,6 +545,7 @@ class TestPanel(wx.Frame):
                 self.label.SetLabel(self.text_value)
                 text_position=dlg.GetScreenPosition()
                 print text_position
+                parallel_frame.add_text_to_screen(self.text_value,text_position)
                 #Label.SetBackgroundColour((255,255,255))
 
             else:
@@ -586,6 +596,7 @@ class TestPanel(wx.Frame):
 
     def on_zoom(self,event):
         self.mc.Pause()
+        parallel_frame.Hide()
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
         filename=self.get_image_from_video(self.sequence_video_list[self.sequence_video_pointer],'zoom')
@@ -597,8 +608,9 @@ class TestPanel(wx.Frame):
         rectprops = dict(facecolor='red', edgecolor = 'black', alpha=0.5, fill=True))
         cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)
         cid1 = self.fig.canvas.mpl_connect('button_release_event', self.onrelease)
-        axnext = plt.axes([0.81, 0.01, 0.1, 0.075])
-        bnext = Button(axnext, 'Next')
+        but_config = plt.axes([0.81, 0.01, 0.1, 0.075])
+        zoom_button = Button(but_config, 'SET')
+        zoom_button.on_clicked(parallel_frame.set_zoom)
         self.fig.patch.set_visible(False)
         self.ax.axis('off')
         plt.show()
@@ -712,7 +724,7 @@ app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Sports Video Editor")
 frame.Maximize(True)
 frame.Show()
-parallel_frame=ParallelWindow(parent=None, id=-1, title="Sports Video")
+parallel_frame=ParallelWindow(parent=None, id=-1, title="")
 parallel_frame.SetTransparent(100)
 app.SetTopWindow(parallel_frame)
 parallel_frame.Show()
