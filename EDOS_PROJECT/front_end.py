@@ -11,7 +11,7 @@ import shutil
 import matplotlib.widgets as widgets
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
-
+import math
 #import back_end
 #----------------------------------------------------------------------
 
@@ -88,6 +88,7 @@ class dropDown_menu:
 
 
 class ParallelWindow(wx.Frame):
+
     def __init__(self,parent,id,title):
         self.screenWidth = frame.screenWidth
         self.screenHeight = frame.screenHeight
@@ -99,16 +100,47 @@ class ParallelWindow(wx.Frame):
         self.label=Label
         self.label.SetBackgroundColour('black')
         self.label.SetForegroundColour('white')
+
+
     def add_text_to_screen(self,text_value,text_position):
         #panel.SetBackgroundColour('red')
         self.label.SetLabelText(text_value)
         self.panel.SetSize(self.label.GetSize())
-        self.panel.SetPosition(text_position)
+        self.panel.SetPosition((self.relative_position(text_position)))
+
+
     def set_zoom(self,event):
+        press=frame.press_list[len(frame.press_list)-2]
+        release=frame.release_list[-1]
+        breadth=math.fabs(release[0]-press[0])
+        height=math.fabs(press[1]-release[1])
+        relative_breadth,relative_height=self.relative_zoom(breadth,height)
+        relative_x,relative_y=self.relative_position(press)
+        zoom_area=wx.Panel(self,-1,size=(relative_breadth,relative_height),pos=(relative_x,relative_y))
+        zoom_area.SetBackgroundColour('red')
         parallel_frame.Show()
         plt.close()
 
 
+    def relative_zoom(self,breadth,height):
+        panel_width=self.GetSize()[0]
+        panel_height=self.GetSize()[1]
+        image_width=frame.image_size[0]
+        image_height=frame.image_size[1]
+        relative_breadth=(breadth*panel_width)/image_width
+        relative_height=(height*panel_height)/image_height
+        #print panel_height,panel_width
+        return relative_breadth,relative_height
+
+
+    def relative_position(self,CoOrds):
+        panel_width=self.GetSize()[0]
+        panel_height=self.GetSize()[1]
+        image_width=frame.image_size[0]
+        image_height=frame.image_size[1]
+        relative_x=(CoOrds[0]*panel_width)/image_width
+        reative_y=(CoOrds[1]*panel_height)/image_height
+        return relative_x,reative_y
 
 class TestPanel(wx.Frame):
 
@@ -234,6 +266,8 @@ class TestPanel(wx.Frame):
         self.operation_duration_list=[]
         self.operations_performed_list=[]
 
+        self.images_size_list=[]
+
 
         self.play_flag=0
         self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink'}
@@ -314,6 +348,8 @@ class TestPanel(wx.Frame):
             image_time=int(self.mc.Tell()/1000)
         f=clip.get_frame(image_time) # shows the frame of the clip at t=10.5s
         img=Image.fromarray(f)
+        self.image_size= img.size
+        self.images_size_list.append(img.size)
         if purpose=='thumb_nail':
             img=img.resize((100,70))
         file_name=self.get_file_name(file_path).split('.')[0]+'.png'
@@ -403,9 +439,18 @@ class TestPanel(wx.Frame):
                           wx.ICON_ERROR | wx.OK)
         else:
             self.mc.SetInitialSize((8*self.screenWidth/10,3.7*self.screenHeight/5))
+            print self.mc.GetMinSize()
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             self.play_flag=0
+            video_index=self.videos_list.index(path)
+            video_width= self.images_size_list[video_index][0]
+            video_height=self.images_size_list[video_index][1]
+            media_width=8*self.screenWidth/10
+            parallel_frame_width=(3.2*self.screenHeight/5*video_width)/video_height
+            displacement=(media_width-parallel_frame_width)/2
+            parallel_frame.SetSize((parallel_frame_width,3.2*self.screenHeight/5))
+            parallel_frame.SetPosition((self.screenWidth/10+displacement,self.screenHeight/28))
             for each_object in self.status_panel_list:
                 each_object.Destroy()
             for i in range(len(self.status_panel_list)):
@@ -588,11 +633,14 @@ class TestPanel(wx.Frame):
 
 
     def onclick(self,event):
-        print event.xdata, event.ydata
+        self.press_CoOrd=[event.xdata, event.ydata]
+        self.press_list.append(self.press_CoOrd)
 
 
     def onrelease(self,event):
-        print  event.xdata,event.ydata
+        self.release_CoOrd=[event.xdata,event.ydata]
+        self.release_list.append(self.release_CoOrd)
+
 
     def on_zoom(self,event):
         self.mc.Pause()
@@ -606,13 +654,15 @@ class TestPanel(wx.Frame):
         rs=widgets.RectangleSelector(
         self.ax, self.onselect, drawtype='box',
         rectprops = dict(facecolor='red', edgecolor = 'black', alpha=0.5, fill=True))
+        self.press_list=[]
+        self.release_list=[]
         cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)
         cid1 = self.fig.canvas.mpl_connect('button_release_event', self.onrelease)
         but_config = plt.axes([0.81, 0.01, 0.1, 0.075])
         zoom_button = Button(but_config, 'SET')
         zoom_button.on_clicked(parallel_frame.set_zoom)
-        self.fig.patch.set_visible(False)
-        self.ax.axis('off')
+        #self.fig.patch.set_visible(False)
+        #self.ax.axis('off')
         plt.show()
 
 
@@ -714,7 +764,7 @@ class TestPanel(wx.Frame):
         self.dc = wx.PaintDC(self.imported_video_panel)
         self.dc.BeginDrawing()
         self.dc.SetPen(wx.Pen("red",style=wx.TRANSPARENT))
-        self.dc.SetBrush(wx.Brush("red", wx.SOLID))
+        self.dc.SetBrush(wx.B rush("red", wx.SOLID))
         # set x, y, w, h for rectangle
         self.dc.DrawRectangle(250,250,50, 50)
         self.dc.EndDrawing()
