@@ -8,6 +8,10 @@ import numpy as np
 import time
 import wx.lib.buttons
 import shutil
+import matplotlib.widgets as widgets
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
+
 #import back_end
 #----------------------------------------------------------------------
 
@@ -81,6 +85,17 @@ class dropDown_menu:
         w=(self.screenWidth*x)/1280
         return w
 
+
+
+class ParallelWindow(wx.Frame):
+    def __init__(self,parent,id,title):
+        self.screenWidth = frame.screenWidth
+        self.screenHeight = frame.screenHeight
+        wx.Frame.__init__(self,parent,id,title,size=(8*self.screenWidth/10,3.2*self.screenHeight/5), pos=(self.screenWidth/10,self.screenHeight/28),  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
+    def add_text_to_screen(self,text,x,y):
+        pass
+
+
 class TestPanel(wx.Frame):
 
     def __init__(self,parent,id,title):
@@ -92,7 +107,9 @@ class TestPanel(wx.Frame):
         #Create a frame
         wx.Frame.__init__(self,parent,id,title,size=screenSize, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
         self.Bind(wx.EVT_CLOSE, self.ShutdownDemo)
-        self.media_player_panel= wx.Panel(self,size=(8/10*self.screenWidth,3.7*self.screenHeight/5), pos=(self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
+        self.Bind(wx.EVT_ICONIZE, self.OnMinimize)
+
+        self.media_player_panel= wx.Panel(self,size=(8*self.screenWidth/10,3.7*self.screenHeight/5), pos=(self.screenWidth/10,0), style=wx.SIMPLE_BORDER)
 
         self.sequence_video_panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(self.screenWidth/10,4*self.screenHeight/5+self.screenHeight/16), pos=(0,0), style=wx.SIMPLE_BORDER)
         self.sequence_video_panel.SetupScrolling()
@@ -138,8 +155,10 @@ class TestPanel(wx.Frame):
         self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(690),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         self.undo_op_but.Bind(wx.EVT_BUTTON, self.undo_operation, self.undo_op_but)
 
+        self.zoom_but = wx.Button(self.video_operators_panel, -1, "ZOOM",pos=(self.get_relative_X(800),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.zoom_but.Bind(wx.EVT_BUTTON, self.on_zoom, self.zoom_but)
 
-        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(810),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(900),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
 
         self.undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
@@ -156,6 +175,7 @@ class TestPanel(wx.Frame):
         bSizer.Add(self.undo_imp_but,0,wx.ALL,5)
         bSizer.Add(self.undo_seq_but,0,wx.ALL,5)
         bSizer.Add(self.done_button,0,wx.ALL,5)
+        bSizer.Add(self.zoom_but,0,wx.ALL,5)
         bSizer.Add(self.undo_op_but,0,wx.ALL,5)
 
         self.SetSizer( bSizer )
@@ -215,12 +235,15 @@ class TestPanel(wx.Frame):
         self.speed_value=1
 
 
-        Label=wx.StaticText(self.text_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
+        Label=wx.StaticText(self.media_player_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
         font = wx.Font(25, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
         Label.SetFont(font)
         self.label=Label
         self.label.SetBackgroundColour('black')
         self.label.SetForegroundColour('white')
+
+
+        #self.Bind(wx.EVT_PAINT, self.OnPaint)
 
        # Create some controls
 
@@ -257,7 +280,7 @@ class TestPanel(wx.Frame):
         if(self.check_file_existance(file_path,1) and self.get_file_name(file_path)):
             self.undo_imp_but.Enable()
             self.imported_video_position+=self.get_relative_Y(100)
-            button_image=str(self.get_image_from_video(file_path))
+            button_image=str(self.get_image_from_video(file_path,'thumb_nail'))
             bmp = wx.Bitmap(button_image, wx.BITMAP_TYPE_ANY)
             #button = wx.Button(self.imported_video_panel,label=self.get_file_name(file_path),pos=(self.get_relative_X(50),self.imported_video_position),size=(self.get_relative_X(100),self.get_relative_X(100)))
             button = wx.BitmapButton(self.imported_video_panel,id=wx.ID_ANY, bitmap=bmp,size=(self.get_relative_X(120),self.get_relative_Y(85)))
@@ -269,12 +292,16 @@ class TestPanel(wx.Frame):
 
 
 
-    def get_image_from_video(self,file_path):
+    def get_image_from_video(self,file_path,purpose):
         clip = VideoFileClip(file_path)
-        image_time=int(clip.duration/2)
+        if purpose=='thumb_nail':
+            image_time=int(clip.duration/2)
+        elif purpose=='zoom':
+            image_time=int(self.mc.Tell()/1000)
         f=clip.get_frame(image_time) # shows the frame of the clip at t=10.5s
         img=Image.fromarray(f)
-        img=img.resize((100,70))
+        if purpose=='thumb_nail':
+            img=img.resize((100,70))
         file_name=self.get_file_name(file_path).split('.')[0]+'.png'
         if not os.path.exists(self.App_folder):
             os.makedirs(self.App_folder)
@@ -334,6 +361,7 @@ class TestPanel(wx.Frame):
 
 
     def OnLoadFile(self, evt):
+        parallel_frame.Hide()
         dlg = wx.FileDialog(self, message="Choose a media file",
                             defaultDir=os.getcwd(), defaultFile="",
                             style=wx.OPEN | wx.CHANGE_DIR )
@@ -345,6 +373,7 @@ class TestPanel(wx.Frame):
             except RuntimeError as e:
                 wx.MessageDialog(None,str(e), 'INVALID FILE', wx.OK | wx.ICON_INFORMATION).ShowModal()
         dlg.Destroy()
+        parallel_frame.Show()
 
 
 
@@ -497,6 +526,7 @@ class TestPanel(wx.Frame):
     def on_text_entry(self,event):
         state = event.GetEventObject().GetValue()
         if state==True:
+            parallel_frame.Hide()
             self.mc.Pause()
             dlg = wx.TextEntryDialog(frame, 'Enter some text','Text Entry')
             if dlg.ShowModal() == wx.ID_OK:
@@ -504,13 +534,15 @@ class TestPanel(wx.Frame):
                 self.text_value=str(dlg.GetValue())
                 self.adjust_slider_color(-5)
                 self.label.SetLabel(self.text_value)
-
+                text_position=dlg.GetScreenPosition()
+                print text_position
                 #Label.SetBackgroundColour((255,255,255))
 
             else:
                 self.text_but.SetValue(False)
             dlg.Destroy()
             self.mc.Play()
+            parallel_frame.Show()
         else:
             self.add_operation()
             self.adjust_slider_color(self.mc.GetPlaybackRate())
@@ -532,6 +564,45 @@ class TestPanel(wx.Frame):
         self.sequence_video_pointer+=1
         self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
         print self.sequence_video_pointer
+
+
+    def onselect(self,eclick, erelease):
+        if eclick.ydata>erelease.ydata:
+            eclick.ydata,erelease.ydata=erelease.ydata,eclick.ydata
+        if eclick.xdata>erelease.xdata:
+            eclick.xdata,erelease.xdata=erelease.xdata,eclick.xdata
+        self.ax.set_ylim(erelease.ydata,eclick.ydata)
+        self.ax.set_xlim(eclick.xdata,erelease.xdata)
+        self.fig.canvas.draw()
+
+
+
+    def onclick(self,event):
+        print event.xdata, event.ydata
+
+
+    def onrelease(self,event):
+        print  event.xdata,event.ydata
+
+    def on_zoom(self,event):
+        self.mc.Pause()
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        filename=self.get_image_from_video(self.sequence_video_list[self.sequence_video_pointer],'zoom')
+        im = Image.open(filename)
+        arr = np.asarray(im)
+        plt_image=plt.imshow(arr)
+        rs=widgets.RectangleSelector(
+        self.ax, self.onselect, drawtype='box',
+        rectprops = dict(facecolor='red', edgecolor = 'black', alpha=0.5, fill=True))
+        cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)
+        cid1 = self.fig.canvas.mpl_connect('button_release_event', self.onrelease)
+        axnext = plt.axes([0.81, 0.01, 0.1, 0.075])
+        bnext = Button(axnext, 'Next')
+        self.fig.patch.set_visible(False)
+        self.ax.axis('off')
+        plt.show()
+
 
 
     def undo_operation(self,event):
@@ -606,6 +677,14 @@ class TestPanel(wx.Frame):
 
 
 
+    def OnMinimize(self,event):
+        if  self.IsIconized():
+            parallel_frame.Hide()
+        else:
+            parallel_frame.Show()
+
+
+
 
     def ShutdownDemo(self,event):
         if os.path.exists(self.App_folder):
@@ -613,11 +692,28 @@ class TestPanel(wx.Frame):
         self.timer.Stop()
         del self.timer
         self.Destroy()
+        parallel_frame.Destroy()
+
+
+
+
+    '''def OnPaint(self,event):
+        """set up the device context (DC) for painting"""
+        self.dc = wx.PaintDC(self.imported_video_panel)
+        self.dc.BeginDrawing()
+        self.dc.SetPen(wx.Pen("red",style=wx.TRANSPARENT))
+        self.dc.SetBrush(wx.Brush("red", wx.SOLID))
+        # set x, y, w, h for rectangle
+        self.dc.DrawRectangle(250,250,50, 50)
+        self.dc.EndDrawing()
+        del self.dc'''
 
 app = wx.App()
-frame = TestPanel(parent=None, id=-1, title="Test")
+frame = TestPanel(parent=None, id=-1, title="Sports Video Editor")
 frame.Maximize(True)
-frame.SetTitle("Sports Video Editor")
 frame.Show()
+parallel_frame=ParallelWindow(parent=None, id=-1, title="Sports Video")
+parallel_frame.SetTransparent(100)
+app.SetTopWindow(parallel_frame)
+parallel_frame.Show()
 app.MainLoop()
-
