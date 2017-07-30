@@ -106,7 +106,7 @@ class ParallelWindow(wx.Frame):
         #panel.SetBackgroundColour('red')
         self.label.SetLabelText(text_value)
         self.panel.SetSize(self.label.GetSize())
-        self.panel.SetPosition((self.relative_position(text_position)))
+        self.panel.SetPosition((self.set_text_position(text_position)))
 
 
     def set_zoom(self,event):
@@ -141,6 +141,14 @@ class ParallelWindow(wx.Frame):
         relative_x=(CoOrds[0]*panel_width)/image_width
         reative_y=(CoOrds[1]*panel_height)/image_height
         return relative_x,reative_y
+
+
+    def set_text_position(self,text_position):
+        panel_x=self.GetPosition()[0]
+        panel_y=self.GetPosition()[1]
+        relative_x=text_position[0]-panel_x
+        relative_y=text_position[1]-panel_y
+        return relative_x,relative_y
 
 class TestPanel(wx.Frame):
 
