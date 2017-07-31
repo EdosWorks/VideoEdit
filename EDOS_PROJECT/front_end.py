@@ -94,20 +94,21 @@ class ParallelWindow(wx.Frame):
         self.screenHeight = frame.screenHeight
         wx.Frame.__init__(self,parent,id,title,size=(8*self.screenWidth/10,3.24*self.screenHeight/5), pos=(self.screenWidth/10,self.screenHeight/31),  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
         self.panel=wx.Panel(self,-1,size=(0,0))
+        self.zoomed_panels=[]
+        self.text_labels=[]
+
+    def add_text_to_screen(self,text_value,text_position):
         Label=wx.StaticText(self.panel,id=wx.ID_ANY, label="",style=wx.ALIGN_CENTRE)
         font = wx.Font(15, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
         Label.SetFont(font)
         self.label=Label
         self.label.SetBackgroundColour('black')
         self.label.SetForegroundColour('white')
-
-
-    def add_text_to_screen(self,text_value,text_position):
         #panel.SetBackgroundColour('red')
         self.label.SetLabelText(text_value)
-        self.panel.SetSize(self.label.GetSize())
-        self.panel.SetPosition((self.set_text_position(text_position)))
-
+        #self.panel.SetSize(self.label.GetSize())
+        self.label.SetPosition((self.set_text_position(text_position)))
+        self.text_labels.append(self.label)
 
     def set_zoom(self,event):
         self.zoom_parameters=[]
@@ -119,6 +120,7 @@ class ParallelWindow(wx.Frame):
         relative_x,relative_y=self.relative_position(press)
         self.zoom_area=wx.Panel(self,-1,size=(relative_breadth,relative_height),pos=(relative_x,relative_y))
         self.zoom_area.SetBackgroundColour('red')
+        self.zoomed_panels.append(self.zoom_area)
         self.zoom_parameters.append(press)
         self.zoom_parameters.append(release)
         self.zoom_parameters.append(self.zoom_area)
@@ -521,7 +523,7 @@ class TestPanel(wx.Frame):
             pass
         try:
             if value!=0:
-                self.status_panel_list[-1].SetSize((value-self.time_elapsed,self.get_relative_Y(20)))
+                self.status_panel_list[-1].SetSize((value-self.time_elapsed,self.get_relative_Y(10)))
         except IndexError:
             pass
 
@@ -587,6 +589,7 @@ class TestPanel(wx.Frame):
             self.adjust_slider_color(0)
             self.text_but.Disable()
             self.speed_menu.cb.Disable()
+            self.zoom_but.Disable()
             #self.shape_menu.cb.Disable()
             self.trim_value=1
 
@@ -594,6 +597,7 @@ class TestPanel(wx.Frame):
             self.adjust_slider_color(self.mc.GetPlaybackRate())
             self.text_but.Enable()
             self.speed_menu.cb.Enable()
+            self.zoom_but.Enable()
             #self.shape_menu.cb.Enable()
             self.add_operation()
             self.trim_value=0
@@ -610,7 +614,7 @@ class TestPanel(wx.Frame):
                 self.add_operation()
                 self.text_value=str(dlg.GetValue())
                 self.adjust_slider_color(-5)
-                self.label.SetLabel(self.text_value)
+                #self.label.SetLabel(self.text_value)
                 text_position=dlg.GetScreenPosition()
                 parallel_frame.add_text_to_screen(self.text_value,text_position)
                 #Label.SetBackgroundColour((255,255,255))
@@ -624,22 +628,9 @@ class TestPanel(wx.Frame):
             self.add_operation()
             self.adjust_slider_color(-5)
             self.text_value=False
-            self.label.SetLabel('')
+            parallel_frame.label.Hide()
+            #self.label.SetLabel('')
 
-
-
-    def add_operation(self):
-        self.end_time=self.mc.Tell()
-        current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
-        self.operations_performed_list.append(current_operation_details)
-        self.start_time=self.end_time
-
-
-
-    def on_done(self,event):
-        print self.operations_performed_list
-        #self.sequence_video_pointer+=1
-        #self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
 
 
     def onselect(self,eclick, erelease):
@@ -699,6 +690,27 @@ class TestPanel(wx.Frame):
             parallel_frame.zoom_area.Hide()
 
 
+
+
+    def add_operation(self):
+        self.end_time=self.mc.Tell()
+        if self.text_value==False:
+            current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
+        else:
+            current_operation_details=[self.start_time,self.end_time,self.trim_value,parallel_frame.label,self.speed_value,self.zoom_value]
+        self.operations_performed_list.append(current_operation_details)
+        self.start_time=self.end_time
+
+
+
+    def on_done(self,event):
+        print self.operations_performed_list
+        #self.sequence_video_pointer+=1
+        #self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
+
+
+
+
     def undo_operation(self,event):
         try:
             self.mc.Seek(self.operation_duration_list[-1][0])
@@ -711,22 +723,38 @@ class TestPanel(wx.Frame):
             self.trim_value=previos_operation_data[2]
             self.text_value=previos_operation_data[3]
             self.speed_value=previos_operation_data[4]
+            self.zoom_value=previos_operation_data[5]
             #self.operations_id_stack.pop(-1)
             if self.trim_value==1:
                 self.trim_but.SetValue(True)
                 self.text_but.Disable()
                 self.speed_menu.cb.Disable()
+                self.zoom_but.Disable()
             else:
                 self.trim_but.SetValue(False)
                 self.text_but.Enable()
                 self.speed_menu.cb.Enable()
+                self.zoom_but.Enable()
 
             if self.text_value!=False:
                 self.text_but.SetValue(True)
-                self.label.SetLabel(str(self.text_value))
+                self.present_text=self.text_value
+                self.present_text.Show()
+                #ADD new text GUI
             else:
                 self.text_but.SetValue(False)
-                self.label.SetLabel('')
+                self.present_text.Hide()
+
+                #self.label.SetLabel('')
+            if self.zoom_value!=[]:
+                self.zoom_but.SetValue(True)
+                self.present_zoom=self.zoom_value[2]
+                self.present_zoom.Show()
+
+            else:
+                self.zoom_but.SetValue(False)
+                self.present_zoom.Hide()
+
 
             self.mc.SetPlaybackRate(self.speed_value)
 
