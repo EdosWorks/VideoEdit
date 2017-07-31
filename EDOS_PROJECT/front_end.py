@@ -110,24 +110,21 @@ class ParallelWindow(wx.Frame):
 
 
     def set_zoom(self,event):
+        self.zoom_parameters=[]
         press=frame.press_list[len(frame.press_list)-2]
         release=frame.release_list[-1]
         breadth=math.fabs(release[0]-press[0])
         height=math.fabs(press[1]-release[1])
         relative_breadth,relative_height=self.relative_zoom(breadth,height)
         relative_x,relative_y=self.relative_position(press)
-        try:
-            self.zoom_area.Hide()
-        except AttributeError:
-            pass
         self.zoom_area=wx.Panel(self,-1,size=(relative_breadth,relative_height),pos=(relative_x,relative_y))
         self.zoom_area.SetBackgroundColour('red')
-        frame.zoom_value.append(press)
-        frame.zoom_value.append(release)
-        frame.zoom_value.append(self.zoom_area)
+        self.zoom_parameters.append(press)
+        self.zoom_parameters.append(release)
+        self.zoom_parameters.append(self.zoom_area)
         parallel_frame.Show()
         plt.close()
-
+        frame.mc.Play()
 
     def relative_zoom(self,breadth,height):
         panel_width=self.GetSize()[0]
@@ -217,8 +214,8 @@ class TestPanel(wx.Frame):
         self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(690),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         self.undo_op_but.Bind(wx.EVT_BUTTON, self.undo_operation, self.undo_op_but)
 
-        self.zoom_but = wx.Button(self.video_operators_panel, -1, "ZOOM",pos=(self.get_relative_X(800),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
-        self.zoom_but.Bind(wx.EVT_BUTTON, self.on_zoom, self.zoom_but)
+        self.zoom_but = wx.ToggleButton(self.video_operators_panel, -1, "ZOOM",pos=(self.get_relative_X(800),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.zoom_but.Bind(wx.EVT_TOGGLEBUTTON, self.on_zoom, self.zoom_but)
 
         exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(900),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
@@ -667,29 +664,39 @@ class TestPanel(wx.Frame):
 
 
     def on_zoom(self,event):
-        self.add_operation()
-        self.mc.Pause()
-        parallel_frame.Hide()
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111)
-        filename=self.get_image_from_video(self.sequence_video_list[self.sequence_video_pointer],'zoom')
-        im = Image.open(filename)
-        arr = np.asarray(im)
-        plt_image=plt.imshow(arr)
-        rs=widgets.RectangleSelector(
-        self.ax, self.onselect, drawtype='box',
-        rectprops = dict(facecolor='red', edgecolor = 'black', alpha=0.5, fill=True))
-        self.press_list=[]
-        self.release_list=[]
-        cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)
-        cid1 = self.fig.canvas.mpl_connect('button_release_event', self.onrelease)
-        but_config = plt.axes([0.81, 0.01, 0.1, 0.075])
-        zoom_button = Button(but_config, 'SET')
-        zoom_button.on_clicked(parallel_frame.set_zoom)
-        self.fig.patch.set_visible(False)
-        self.ax.axis('off')
-        plt.show()
+        state = event.GetEventObject().GetValue()
 
+        if state==True:
+            self.zoom_value=[]
+            self.add_operation()
+            self.adjust_slider_color(-6)
+            self.mc.Pause()
+            parallel_frame.Hide()
+            self.fig = plt.figure()
+            self.ax = self.fig.add_subplot(111)
+            filename=self.get_image_from_video(self.sequence_video_list[self.sequence_video_pointer],'zoom')
+            im = Image.open(filename)
+            arr = np.asarray(im)
+            plt_image=plt.imshow(arr)
+            rs=widgets.RectangleSelector(
+            self.ax, self.onselect, drawtype='box',
+            rectprops = dict(facecolor='red', edgecolor = 'black', alpha=0.5, fill=True))
+            self.press_list=[]
+            self.release_list=[]
+            cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)
+            cid1 = self.fig.canvas.mpl_connect('button_release_event', self.onrelease)
+            but_config = plt.axes([0.81, 0.01, 0.1, 0.075])
+            zoom_button = Button(but_config, 'SET')
+            zoom_button.on_clicked(parallel_frame.set_zoom)
+            self.fig.patch.set_visible(False)
+            self.ax.axis('off')
+            plt.show()
+        else:
+            self.zoom_value=parallel_frame.zoom_parameters
+            self.add_operation()
+            self.zoom_value=[]
+            self.adjust_slider_color(-6)
+            parallel_frame.zoom_area.Hide()
 
 
     def undo_operation(self,event):
