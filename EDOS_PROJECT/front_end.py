@@ -92,7 +92,7 @@ class ParallelWindow(wx.Frame):
     def __init__(self,parent,id,title):
         self.screenWidth = frame.screenWidth
         self.screenHeight = frame.screenHeight
-        wx.Frame.__init__(self,parent,id,title,size=(8*self.screenWidth/10,3.2*self.screenHeight/5), pos=(self.screenWidth/10,self.screenHeight/28),  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
+        wx.Frame.__init__(self,parent,id,title,size=(8*self.screenWidth/10,3.24*self.screenHeight/5), pos=(self.screenWidth/10,self.screenHeight/31),  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
         self.panel=wx.Panel(self,-1,size=(0,0))
         Label=wx.StaticText(self.panel,id=wx.ID_ANY, label="",style=wx.ALIGN_CENTRE)
         font = wx.Font(15, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
@@ -116,8 +116,15 @@ class ParallelWindow(wx.Frame):
         height=math.fabs(press[1]-release[1])
         relative_breadth,relative_height=self.relative_zoom(breadth,height)
         relative_x,relative_y=self.relative_position(press)
-        zoom_area=wx.Panel(self,-1,size=(relative_breadth,relative_height),pos=(relative_x,relative_y))
-        zoom_area.SetBackgroundColour('red')
+        try:
+            self.zoom_area.Hide()
+        except AttributeError:
+            pass
+        self.zoom_area=wx.Panel(self,-1,size=(relative_breadth,relative_height),pos=(relative_x,relative_y))
+        self.zoom_area.SetBackgroundColour('red')
+        frame.zoom_value.append(press)
+        frame.zoom_value.append(release)
+        frame.zoom_value.append(self.zoom_area)
         parallel_frame.Show()
         plt.close()
 
@@ -178,6 +185,7 @@ class TestPanel(wx.Frame):
 
         self.slider_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,self.screenHeight/16), pos=(0,1.1*self.screenHeight/20), style=wx.SIMPLE_BORDER)
         self.slider_panel.SetBackgroundColour('#AAAAAA')
+
 
         self.text_panel = wx.Panel(self.video_operators_panel,size=(8*self.screenWidth/10,1.1*self.screenHeight/20), pos=(0,0), style=wx.SIMPLE_BORDER)
         self.text_panel.SetBackgroundColour('#FFFFFF')
@@ -278,8 +286,9 @@ class TestPanel(wx.Frame):
 
 
         self.play_flag=0
-        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink'}
+        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink',-6:'violet'}
         self.status_panel_list=[]
+        self.slider_blocks_list=[]
         self.time_elapsed=0
         self.App_folder=os.path.join(os.path.expandvars("%userprofile%"),"Desktop\\Edos\\temporary_images\\")
 
@@ -289,6 +298,7 @@ class TestPanel(wx.Frame):
         self.trim_value=0
         self.text_value=False
         self.speed_value=1
+        self.zoom_value=[]
 
 
         Label=wx.StaticText(self.text_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
@@ -327,6 +337,7 @@ class TestPanel(wx.Frame):
                 self.sequence_video_list.append(file)
             return True
         else:
+            parallel_frame.Hide()
             wx.MessageDialog(None,'FILE ALREADY EXISTS', 'Cannot add file', wx.OK | wx.ICON_INFORMATION).ShowModal()
             return False
 
@@ -345,6 +356,7 @@ class TestPanel(wx.Frame):
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.add_video_to_sequence(file_path,button_image))
             self.imported_button_list.append([button,Label])
             self.show_buttons(1)
+        parallel_frame.Show()
 
 
 
@@ -354,11 +366,11 @@ class TestPanel(wx.Frame):
             image_time=int(clip.duration/2)
         elif purpose=='zoom':
             image_time=int(self.mc.Tell()/1000)
-        f=clip.get_frame(image_time) # shows the frame of the clip at t=10.5s
+        f=clip.get_frame(image_time)
         img=Image.fromarray(f)
         self.image_size= img.size
-        self.images_size_list.append(img.size)
         if purpose=='thumb_nail':
+            self.images_size_list.append(img.size)
             img=img.resize((100,70))
         file_name=self.get_file_name(file_path).split('.')[0]+'.png'
         if not os.path.exists(self.App_folder):
@@ -414,6 +426,8 @@ class TestPanel(wx.Frame):
             button.Bind(wx.EVT_BUTTON,lambda temp=file_path: self.DoLoadFile(file_path))
             self.sequence_button_list.append([button,Label])
             self.show_buttons(2)
+        else:
+            parallel_frame.Show()
 
 
 
@@ -447,18 +461,21 @@ class TestPanel(wx.Frame):
                           wx.ICON_ERROR | wx.OK)
         else:
             self.mc.SetInitialSize((8*self.screenWidth/10,3.7*self.screenHeight/5))
-            print self.mc.GetMinSize()
             self.media_player_panel.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             self.play_flag=0
+            try:
+                parallel_frame.zoom_area.Destroy()
+            except AttributeError:
+                pass
             video_index=self.videos_list.index(path)
             video_width= self.images_size_list[video_index][0]
             video_height=self.images_size_list[video_index][1]
             media_width=8*self.screenWidth/10
-            parallel_frame_width=(3.2*self.screenHeight/5*video_width)/video_height
+            parallel_frame_width=(3.24*self.screenHeight/5*video_width)/video_height
             displacement=(media_width-parallel_frame_width)/2
-            parallel_frame.SetSize((parallel_frame_width,3.2*self.screenHeight/5))
-            parallel_frame.SetPosition((self.screenWidth/10+displacement,self.screenHeight/28))
+            parallel_frame.SetSize((parallel_frame_width,3.24*self.screenHeight/5))
+            parallel_frame.SetPosition((self.screenWidth/10+displacement,self.screenHeight/31))
             for each_object in self.status_panel_list:
                 each_object.Destroy()
             for i in range(len(self.status_panel_list)):
@@ -498,7 +515,7 @@ class TestPanel(wx.Frame):
         if self.mc.Tell()>0 and self.play_flag==0:
             self.play()
             self.play_flag=1
-            self.done_button.Disable()
+            #self.done_button.Disable()
 
         value=0
         try:
@@ -507,7 +524,7 @@ class TestPanel(wx.Frame):
             pass
         try:
             if value!=0:
-                self.status_panel_list[-1].SetSize((value-self.time_elapsed,10))
+                self.status_panel_list[-1].SetSize((value-self.time_elapsed,self.get_relative_Y(20)))
         except IndexError:
             pass
 
@@ -515,18 +532,25 @@ class TestPanel(wx.Frame):
 
     def adjust_slider_color(self,operation_id):
         previos_operation_end=0
+        actual_id=0
+        if operation_id==-5 or operation_id==-6:
+            actual_id=operation_id
+            operation_id=self.mc.GetPlaybackRate()
         try:
             previos_operation_end=self.status_panel_list[-1].GetSize()[0]
             self.time_elapsed+=previos_operation_end
         except:
             pass
         self.operation_duration_list.append([self.mc.Tell(),previos_operation_end])
-        new_color_panel=wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7)+self.time_elapsed,20), style=wx.SIMPLE_BORDER)
-        #new_color_panel
+        new_color_panel=wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7)+self.time_elapsed,self.get_relative_Y(20)), style=wx.SIMPLE_BORDER)
         self.status_panel_list.append(new_color_panel)
         color=self.current_operation_dict[operation_id]
         self.status_panel_list[-1].SetBackgroundColour(color) #do this while creating the panel; avoid fetching
-
+        if actual_id!=0:
+            self.block=wx.Panel(self.slider_panel,size=(self.get_relative_X(10),self.get_relative_Y(20)),pos=(self.get_relative_X(7)+self.time_elapsed,self.get_relative_Y(20)),style=wx.SIMPLE_BORDER)
+            color=self.current_operation_dict[actual_id]
+            self.block.SetBackgroundColour(color)
+            self.slider_blocks_list.append(self.block)
 
 
     def get_relative_Y(self,y):
@@ -550,10 +574,7 @@ class TestPanel(wx.Frame):
             speed_factor=float(number)
         self.add_operation()
         self.speed_value=speed_factor
-        if self.text_value==False:
-            self.adjust_slider_color(speed_factor)
-        else:
-            self.adjust_slider_color(-5)
+        self.adjust_slider_color(speed_factor)
 
 
 
@@ -573,10 +594,7 @@ class TestPanel(wx.Frame):
             self.trim_value=1
 
         else:
-            if self.text_value!=False:
-                self.adjust_slider_color(-5)
-            else:
-                self.adjust_slider_color(self.mc.GetPlaybackRate())
+            self.adjust_slider_color(self.mc.GetPlaybackRate())
             self.text_but.Enable()
             self.speed_menu.cb.Enable()
             #self.shape_menu.cb.Enable()
@@ -597,7 +615,6 @@ class TestPanel(wx.Frame):
                 self.adjust_slider_color(-5)
                 self.label.SetLabel(self.text_value)
                 text_position=dlg.GetScreenPosition()
-                print text_position
                 parallel_frame.add_text_to_screen(self.text_value,text_position)
                 #Label.SetBackgroundColour((255,255,255))
 
@@ -608,7 +625,7 @@ class TestPanel(wx.Frame):
             parallel_frame.Show()
         else:
             self.add_operation()
-            self.adjust_slider_color(self.mc.GetPlaybackRate())
+            self.adjust_slider_color(-5)
             self.text_value=False
             self.label.SetLabel('')
 
@@ -616,17 +633,16 @@ class TestPanel(wx.Frame):
 
     def add_operation(self):
         self.end_time=self.mc.Tell()
-        current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value]
+        current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
         self.operations_performed_list.append(current_operation_details)
         self.start_time=self.end_time
 
 
 
     def on_done(self,event):
-        #print self.operations_performed_list
-        self.sequence_video_pointer+=1
-        self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
-        print self.sequence_video_pointer
+        print self.operations_performed_list
+        #self.sequence_video_pointer+=1
+        #self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
 
 
     def onselect(self,eclick, erelease):
@@ -651,6 +667,7 @@ class TestPanel(wx.Frame):
 
 
     def on_zoom(self,event):
+        self.add_operation()
         self.mc.Pause()
         parallel_frame.Hide()
         self.fig = plt.figure()
@@ -669,8 +686,8 @@ class TestPanel(wx.Frame):
         but_config = plt.axes([0.81, 0.01, 0.1, 0.075])
         zoom_button = Button(but_config, 'SET')
         zoom_button.on_clicked(parallel_frame.set_zoom)
-        #self.fig.patch.set_visible(False)
-        #self.ax.axis('off')
+        self.fig.patch.set_visible(False)
+        self.ax.axis('off')
         plt.show()
 
 
