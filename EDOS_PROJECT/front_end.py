@@ -523,7 +523,7 @@ class TestPanel(wx.Frame):
             pass
         try:
             if value!=0:
-                self.status_panel_list[-1].SetSize((value-self.time_elapsed,self.get_relative_Y(10)))
+                self.status_panel_list[-1].SetSize((value-self.time_elapsed,self.get_relative_Y(20)))
         except IndexError:
             pass
 
@@ -628,8 +628,8 @@ class TestPanel(wx.Frame):
             self.add_operation()
             self.adjust_slider_color(-5)
             self.text_value=False
-            parallel_frame.label.Hide()
             #self.label.SetLabel('')
+            parallel_frame.label.Hide()
 
 
 
@@ -694,10 +694,7 @@ class TestPanel(wx.Frame):
 
     def add_operation(self):
         self.end_time=self.mc.Tell()
-        if self.text_value==False:
-            current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
-        else:
-            current_operation_details=[self.start_time,self.end_time,self.trim_value,parallel_frame.label,self.speed_value,self.zoom_value]
+        current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
         self.operations_performed_list.append(current_operation_details)
         self.start_time=self.end_time
 
@@ -738,23 +735,21 @@ class TestPanel(wx.Frame):
 
             if self.text_value!=False:
                 self.text_but.SetValue(True)
-                self.present_text=self.text_value
-                self.present_text.Show()
+                self.label.SetLabel(str(self.text_value))
                 #ADD new text GUI
             else:
                 self.text_but.SetValue(False)
-                self.present_text.Hide()
-
-                #self.label.SetLabel('')
+                self.label.SetLabel('')
             if self.zoom_value!=[]:
                 self.zoom_but.SetValue(True)
                 self.present_zoom=self.zoom_value[2]
                 self.present_zoom.Show()
 
             else:
-                self.zoom_but.SetValue(False)
-                self.present_zoom.Hide()
-
+                try:
+                    self.present_zoom.Hide()
+                except AttributeError:
+                    pass
 
             self.mc.SetPlaybackRate(self.speed_value)
 
