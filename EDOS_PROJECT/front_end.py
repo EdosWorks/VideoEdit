@@ -88,17 +88,19 @@ class dropDown_menu:
 
 
 class ParallelWindow(wx.Frame):
-
-    def __init__(self,parent,id,title):
+    isLeftDown = False
+    def __init__(self,parent,id,title,sizee,posi):
         self.screenWidth = frame.screenWidth
         self.screenHeight = frame.screenHeight
-        wx.Frame.__init__(self,parent,id,title,size=(8*self.screenWidth/10,3.24*self.screenHeight/5), pos=(self.screenWidth/10,self.screenHeight/31),  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
-        self.panel=wx.Panel(self,-1,size=(0,0))
+        wx.Frame.__init__(self,parent,id,title,size=sizee, pos=posi,  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
         self.zoomed_panels=[]
         self.text_labels=[]
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.Bind(wx.EVT_MOTION, self.OnMove)
 
     def add_text_to_screen(self,text_value,text_position):
-        Label=wx.StaticText(self.panel,id=wx.ID_ANY, label="",style=wx.ALIGN_CENTRE)
+        Label=wx.StaticText(self,id=wx.ID_ANY, label="",style=wx.ALIGN_CENTRE)
         font = wx.Font(15, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
         Label.SetFont(font)
         self.label=Label
@@ -156,6 +158,31 @@ class ParallelWindow(wx.Frame):
         relative_x=text_position[0]-panel_x
         relative_y=text_position[1]-panel_y
         return relative_x,relative_y
+
+
+
+    def OnLeftDown(self, event):
+        pos = event.GetPositionTuple()
+        dc = wx.ClientDC(self)
+        dc.Clear()
+        dc.SetPen(wx.Pen("red", 0))
+        dc.SetBrush(wx.Brush("yellow"))
+        dc.DrawCircle(pos[0], pos[1], 50)
+        self.isLeftDown = True
+
+    def OnLeftUp(self, event):
+        self.isLeftDown = False
+
+    def OnMove(self, event):
+        if self.isLeftDown:
+            pos = event.GetPositionTuple()
+            dc = wx.ClientDC(self)
+            dc.Clear()
+            dc.SetPen(wx.Pen("red", 0))
+            dc.SetBrush(wx.Brush("yellow"))
+            dc.DrawCircle(pos[0], pos[1], 50)
+
+
 
 class TestPanel(wx.Frame):
 
@@ -487,6 +514,16 @@ class TestPanel(wx.Frame):
             self.status_panel_list=[]
             self.time_elapsed=0
             self.operations_performed_list=[]
+            self.create_parallel_window((parallel_frame_width,3.24*self.screenHeight/5),(self.screenWidth/10+displacement,self.screenHeight/31))
+
+    def create_parallel_window(self,panel_size,panel_position):
+        global parallel_frame
+        parallel_frame.Destroy()
+        parallel_frame=ParallelWindow(parent=None, id=-1, title="",sizee=panel_size,posi=panel_position)
+        parallel_frame.SetTransparent(100)
+        app.SetTopWindow(parallel_frame)
+        parallel_frame.Show()
+
 
 
 
@@ -852,7 +889,7 @@ app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Sports Video Editor")
 frame.Maximize(True)
 frame.Show()
-parallel_frame=ParallelWindow(parent=None, id=-1, title="")
+parallel_frame=ParallelWindow(parent=None, id=-1, title="",sizee=(8*frame.screenWidth/10,3.24*frame.screenHeight/5), posi=(frame.screenWidth/10,frame.screenHeight/31))
 parallel_frame.SetTransparent(100)
 app.SetTopWindow(parallel_frame)
 parallel_frame.Show()
