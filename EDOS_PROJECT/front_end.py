@@ -476,10 +476,16 @@ class TestPanel(wx.Frame):
             parallel_frame.SetSize((parallel_frame_width,3.24*self.screenHeight/5))
             parallel_frame.SetPosition((self.screenWidth/10+displacement,self.screenHeight/31))
             for each_object in self.status_panel_list:
-                each_object.Destroy()
-            for i in range(len(self.status_panel_list)):
-                self.status_panel_list.pop(0)
+                each_object[0].Destroy()
+                try:
+                    each_object[1].Destroy()
+                except IndexError:
+                    pass
+            #for i in range(len(self.status_panel_list)):
+            #    self.status_panel_list.pop(0)
+            self.status_panel_list=[]
             self.time_elapsed=0
+            self.operations_performed_list=[]
 
 
 
@@ -523,7 +529,7 @@ class TestPanel(wx.Frame):
             pass
         try:
             if value!=0:
-                self.status_panel_list[-1].SetSize((value-self.time_elapsed,self.get_relative_Y(20)))
+                self.status_panel_list[-1][0].SetSize((value-self.time_elapsed,self.get_relative_Y(20)))
         except IndexError:
             pass
 
@@ -536,20 +542,21 @@ class TestPanel(wx.Frame):
             actual_id=operation_id
             operation_id=self.mc.GetPlaybackRate()
         try:
-            previos_operation_end=self.status_panel_list[-1].GetSize()[0]
+            previos_operation_end=self.status_panel_list[-1][0].GetSize()[0]
             self.time_elapsed+=previos_operation_end
         except:
             pass
         self.operation_duration_list.append([self.mc.Tell(),previos_operation_end])
         new_color_panel=wx.Panel(self.slider_panel,size=(0,0), pos=(self.get_relative_X(7)+self.time_elapsed,self.get_relative_Y(20)), style=wx.SIMPLE_BORDER)
-        self.status_panel_list.append(new_color_panel)
         color=self.current_operation_dict[operation_id]
-        self.status_panel_list[-1].SetBackgroundColour(color) #do this while creating the panel; avoid fetching
+        new_color_panel.SetBackgroundColour(color) #do this while creating the panel; avoid fetching
         if actual_id!=0:
-            self.block=wx.Panel(self.slider_panel,size=(self.get_relative_X(10),self.get_relative_Y(20)),pos=(self.get_relative_X(7)+self.time_elapsed,self.get_relative_Y(20)),style=wx.SIMPLE_BORDER)
+            block=wx.Panel(self.slider_panel,size=(self.get_relative_X(10),self.get_relative_Y(20)),pos=(self.get_relative_X(7)+self.time_elapsed,self.get_relative_Y(20)),style=wx.SIMPLE_BORDER)
             color=self.current_operation_dict[actual_id]
-            self.block.SetBackgroundColour(color)
-            self.slider_blocks_list.append(self.block)
+            block.SetBackgroundColour(color)
+            self.status_panel_list.append([new_color_panel,block])
+        else:
+            self.status_panel_list.append([new_color_panel])
 
 
     def get_relative_Y(self,y):
@@ -571,7 +578,7 @@ class TestPanel(wx.Frame):
         except ValueError:
             self.mc.SetPlaybackRate(float(number))
             speed_factor=float(number)
-        self.add_operation()
+        self.add_operation(4)
         self.speed_value=speed_factor
         self.adjust_slider_color(speed_factor)
 
@@ -585,7 +592,7 @@ class TestPanel(wx.Frame):
     def on_trim(self,event):
         state = event.GetEventObject().GetValue()
         if state==True:
-            self.add_operation()
+            self.add_operation(2)
             self.adjust_slider_color(0)
             self.text_but.Disable()
             self.speed_menu.cb.Disable()
@@ -599,7 +606,7 @@ class TestPanel(wx.Frame):
             self.speed_menu.cb.Enable()
             self.zoom_but.Enable()
             #self.shape_menu.cb.Enable()
-            self.add_operation()
+            self.add_operation(2)
             self.trim_value=0
 
 
@@ -611,7 +618,7 @@ class TestPanel(wx.Frame):
             self.mc.Pause()
             dlg = wx.TextEntryDialog(frame, 'Enter some text','Text Entry')
             if dlg.ShowModal() == wx.ID_OK:
-                self.add_operation()
+                self.add_operation(3)
                 self.text_value=str(dlg.GetValue())
                 self.adjust_slider_color(-5)
                 #self.label.SetLabel(self.text_value)
@@ -625,7 +632,7 @@ class TestPanel(wx.Frame):
             self.mc.Play()
             parallel_frame.Show()
         else:
-            self.add_operation()
+            self.add_operation(3)
             self.adjust_slider_color(-5)
             self.text_value=False
             #self.label.SetLabel('')
@@ -659,7 +666,7 @@ class TestPanel(wx.Frame):
 
         if state==True:
             self.zoom_value=[]
-            self.add_operation()
+            self.add_operation(5)
             self.adjust_slider_color(-6)
             self.mc.Pause()
             parallel_frame.Hide()
@@ -682,19 +689,21 @@ class TestPanel(wx.Frame):
             self.fig.patch.set_visible(False)
             self.ax.axis('off')
             plt.show()
+            #self.undo_op_but.Disable()
         else:
             self.zoom_value=parallel_frame.zoom_parameters
-            self.add_operation()
+            self.add_operation(5)
             self.zoom_value=[]
             self.adjust_slider_color(-6)
             parallel_frame.zoom_area.Hide()
+            #self.undo_op_but.Enable()
 
 
 
 
-    def add_operation(self):
+    def add_operation(self,index):
         self.end_time=self.mc.Tell()
-        current_operation_details=[self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
+        current_operation_details=[index,self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
         self.operations_performed_list.append(current_operation_details)
         self.start_time=self.end_time
 
@@ -713,44 +722,56 @@ class TestPanel(wx.Frame):
             self.mc.Seek(self.operation_duration_list[-1][0])
             self.time_elapsed-=self.operation_duration_list[-1][1]
             self.operation_duration_list.pop(-1)
-            last_panel=self.status_panel_list.pop(-1)
-            last_panel.Destroy()
+            if len(self.status_panel_list[-1])==1:
+                last_panel=self.status_panel_list.pop(-1)[0]
+                last_panel.Destroy()
+            else:
+                total_panel=self.status_panel_list.pop(-1)
+                last_panel=total_panel[0]
+                last_panel.Destroy()
+                last_block=total_panel[1]
+                last_block.Destroy()
             previos_operation_data=self.operations_performed_list.pop(-1)
-            self.start_time=previos_operation_data[0]
-            self.trim_value=previos_operation_data[2]
-            self.text_value=previos_operation_data[3]
-            self.speed_value=previos_operation_data[4]
-            self.zoom_value=previos_operation_data[5]
-            #self.operations_id_stack.pop(-1)
-            if self.trim_value==1:
-                self.trim_but.SetValue(True)
-                self.text_but.Disable()
-                self.speed_menu.cb.Disable()
-                self.zoom_but.Disable()
-            else:
-                self.trim_but.SetValue(False)
-                self.text_but.Enable()
-                self.speed_menu.cb.Enable()
-                self.zoom_but.Enable()
+            self.index=previos_operation_data[0]
+            self.start_time=previos_operation_data[1]
+            self.trim_value=previos_operation_data[3]
+            self.text_value=previos_operation_data[4]
+            self.speed_value=previos_operation_data[5]
+            self.zoom_value=previos_operation_data[6]
 
-            if self.text_value!=False:
-                self.text_but.SetValue(True)
-                self.label.SetLabel(str(self.text_value))
-                #ADD new text GUI
-            else:
-                self.text_but.SetValue(False)
-                self.label.SetLabel('')
-            if self.zoom_value!=[]:
-                self.zoom_but.SetValue(True)
-                self.present_zoom=self.zoom_value[2]
-                self.present_zoom.Show()
+            if self.index==2:
+                if self.trim_value==1:
+                    self.trim_but.SetValue(True)
+                    self.text_but.Disable()
+                    self.speed_menu.cb.Disable()
+                    self.zoom_but.Disable()
+                else:
+                    self.trim_but.SetValue(False)
+                    self.text_but.Enable()
+                    self.speed_menu.cb.Enable()
+                    self.zoom_but.Enable()
 
-            else:
-                try:
-                    self.present_zoom.Hide()
-                except AttributeError:
-                    pass
+            if self.index==3:
+                if self.text_value!=False:
+                    self.text_but.SetValue(True)
+                    self.label.SetLabel(str(self.text_value))
+                    #ADD new text GUI
+                else:
+                    self.text_but.SetValue(False)
+                    self.label.SetLabel('')
 
+            if self.index==5:
+                if self.zoom_value!=[]:
+                    self.zoom_but.SetValue(True)
+                    self.zoom_value[2].Show()
+                    parallel_frame.zoom_area=self.zoom_value[2]
+                    #self.undo_op_but.Disable()
+
+                else:
+                    self.zoom_but.SetValue(False)
+                    parallel_frame.zoom_area.Hide()
+                    #self.undo_op_but.Enable()
+            print self.index
             self.mc.SetPlaybackRate(self.speed_value)
 
         except:
