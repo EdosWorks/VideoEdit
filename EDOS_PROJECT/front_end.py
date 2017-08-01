@@ -109,6 +109,7 @@ class ParallelWindow(wx.Frame):
         #self.panel.SetSize(self.label.GetSize())
         self.label.SetPosition((self.set_text_position(text_position)))
         self.text_labels.append(self.label)
+        frame.text_value=[self.label,text_position]
 
     def set_zoom(self,event):
         self.zoom_parameters=[]
@@ -295,7 +296,7 @@ class TestPanel(wx.Frame):
         self.start_time=0
         self.end_time=0
         self.trim_value=0
-        self.text_value=False
+        self.text_value=[]
         self.speed_value=1
         self.zoom_value=[]
 
@@ -619,11 +620,11 @@ class TestPanel(wx.Frame):
             dlg = wx.TextEntryDialog(frame, 'Enter some text','Text Entry')
             if dlg.ShowModal() == wx.ID_OK:
                 self.add_operation(3)
-                self.text_value=str(dlg.GetValue())
+                text=str(dlg.GetValue())
                 self.adjust_slider_color(-5)
                 #self.label.SetLabel(self.text_value)
                 text_position=dlg.GetScreenPosition()
-                parallel_frame.add_text_to_screen(self.text_value,text_position)
+                parallel_frame.add_text_to_screen(text,text_position)
                 #Label.SetBackgroundColour((255,255,255))
 
             else:
@@ -634,7 +635,7 @@ class TestPanel(wx.Frame):
         else:
             self.add_operation(3)
             self.adjust_slider_color(-5)
-            self.text_value=False
+            self.text_value=[]
             #self.label.SetLabel('')
             parallel_frame.label.Hide()
 
@@ -752,13 +753,14 @@ class TestPanel(wx.Frame):
                     self.zoom_but.Enable()
 
             if self.index==3:
-                if self.text_value!=False:
+                if self.text_value!=[]:
                     self.text_but.SetValue(True)
-                    self.label.SetLabel(str(self.text_value))
+                    self.text_value[0].Show()
+                    parallel_frame.label=self.text_value[0]
                     #ADD new text GUI
                 else:
                     self.text_but.SetValue(False)
-                    self.label.SetLabel('')
+                    parallel_frame.label.Hide()
 
             if self.index==5:
                 if self.zoom_value!=[]:
