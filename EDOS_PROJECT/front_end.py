@@ -50,7 +50,7 @@ class dropDown_menu:
 
 
         sampleList = []
-        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter,self.get_relative_Y(90)),
+        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter-self.get_relative_X(65),self.get_relative_Y(90)),
                               size=(self.get_relative_X(100),self.get_relative_Y(50)),
                               choices=sampleList)
         self.widgetMaker(self.cb, option_list)
@@ -95,9 +95,7 @@ class ParallelWindow(wx.Frame):
         wx.Frame.__init__(self,parent,id,title,size=sizee, pos=posi,  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
         self.zoomed_panels=[]
         self.text_labels=[]
-        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
-        self.Bind(wx.EVT_MOTION, self.OnMove)
+
 
     def add_text_to_screen(self,text_value,text_position):
         Label=wx.StaticText(self,id=wx.ID_ANY, label="",style=wx.ALIGN_CENTRE)
@@ -164,25 +162,37 @@ class ParallelWindow(wx.Frame):
     def OnLeftDown(self, event):
         pos = event.GetPositionTuple()
         dc = wx.ClientDC(self)
-        dc.Clear()
-        dc.SetPen(wx.Pen("red", 0))
-        dc.SetBrush(wx.Brush("yellow"))
-        dc.DrawCircle(pos[0], pos[1], 50)
+        #dc.Clear()
+        dc.SetPen(wx.Pen("black", 0))
+        dc.SetBrush(wx.Brush("black"))
+        dc.DrawCircle(pos[0], pos[1], 2)
         self.isLeftDown = True
+
 
     def OnLeftUp(self, event):
         self.isLeftDown = False
+
 
     def OnMove(self, event):
         if self.isLeftDown:
             pos = event.GetPositionTuple()
             dc = wx.ClientDC(self)
-            dc.Clear()
-            dc.SetPen(wx.Pen("red", 0))
-            dc.SetBrush(wx.Brush("yellow"))
-            dc.DrawCircle(pos[0], pos[1], 50)
+            #dc.Clear()
+            dc.SetPen(wx.Pen("black", 0))
+            dc.SetBrush(wx.Brush("black"))
+            dc.DrawCircle(pos[0], pos[1], 2)
 
 
+    def BIND_MOUSE_EVENTS(self):
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.Bind(wx.EVT_MOTION, self.OnMove)
+
+
+    def UNBIND_MOUSE_EVENTS(self):
+        self.Unbind(wx.EVT_LEFT_DOWN)
+        self.Unbind(wx.EVT_LEFT_UP)
+        self.Unbind(wx.EVT_MOTION)
 
 class TestPanel(wx.Frame):
 
@@ -227,25 +237,29 @@ class TestPanel(wx.Frame):
         bSizer = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(50),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(5),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170-45),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         trim_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_trim, trim_button)
         self.trim_but = trim_button
 
-        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(450),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(450-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         text_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_text_entry, text_button)
         self.text_but=text_button
 
-        self.done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(570),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(900-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         self.done_button.Bind(wx.EVT_BUTTON, self.on_done, self.done_button)
 
-        self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(690),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(800-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         self.undo_op_but.Bind(wx.EVT_BUTTON, self.undo_operation, self.undo_op_but)
 
-        self.zoom_but = wx.ToggleButton(self.video_operators_panel, -1, "ZOOM",pos=(self.get_relative_X(800),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.zoom_but = wx.ToggleButton(self.video_operators_panel, -1, "ZOOM",pos=(self.get_relative_X(690-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         self.zoom_but.Bind(wx.EVT_TOGGLEBUTTON, self.on_zoom, self.zoom_but)
+
+        self.draw_but = wx.ToggleButton(self.video_operators_panel, -1, "DRAW",pos=(self.get_relative_X(570-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.draw_but.Bind(wx.EVT_TOGGLEBUTTON, self.on_draw, self.draw_but)
+
 
         exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(900),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
@@ -265,6 +279,7 @@ class TestPanel(wx.Frame):
         bSizer.Add(self.undo_seq_but,0,wx.ALL,5)
         bSizer.Add(self.done_button,0,wx.ALL,5)
         bSizer.Add(self.zoom_but,0,wx.ALL,5)
+        bSizer.Add(self.draw_but,0,wx.ALL,5)
         bSizer.Add(self.undo_op_but,0,wx.ALL,5)
 
         self.SetSizer( bSizer )
@@ -735,6 +750,18 @@ class TestPanel(wx.Frame):
             self.adjust_slider_color(-6)
             parallel_frame.zoom_area.Hide()
             #self.undo_op_but.Enable()
+
+
+    def on_draw(self,event):
+        state = event.GetEventObject().GetValue()
+
+        if state==True:
+            parallel_frame.BIND_MOUSE_EVENTS()
+        else:
+            parallel_frame.UNBIND_MOUSE_EVENTS()
+
+
+
 
 
 
