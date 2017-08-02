@@ -101,6 +101,7 @@ class ParallelWindow(wx.Frame):
         self.drawing_list=[]
         self.motion_sensor_list=[]
         self.temp_list=[]
+        self.brush_color=(0,0,0)
 
 
     def add_text_to_screen(self,text_value,text_position):
@@ -171,8 +172,8 @@ class ParallelWindow(wx.Frame):
         self.dc = wx.ClientDC(self)
         self.drawing_list.append(self.dc)
         #dc.Clear()
-        self.dc.SetPen(wx.Pen("black", 0))
-        self.dc.SetBrush(wx.Brush("black"))
+        self.dc.SetPen(wx.Pen(self.brush_color, 0))
+        self.dc.SetBrush(wx.Brush(self.brush_color))
         self.dc.DrawCircle(pos[0], pos[1], 2)
         self.isLeftDown = True
 
@@ -188,17 +189,18 @@ class ParallelWindow(wx.Frame):
             self.temp_list.append(pos)
             #dc = wx.ClientDC(self)
             #dc.Clear()
-            self.dc.SetPen(wx.Pen("black", 0))
-            self.dc.SetBrush(wx.Brush("black"))
+            self.dc.SetPen(wx.Pen(self.brush_color, 0))
+            self.dc.SetBrush(wx.Brush(self.brush_color))
             self.dc.DrawCircle(pos[0], pos[1], 2)
 
 
-    def BIND_MOUSE_EVENTS(self):
+    def BIND_MOUSE_EVENTS(self,color):
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_MOTION, self.OnMove)
         self.Bind(wx.EVT_RIGHT_DOWN,self.clear_drawing)
-
+        self.brush_color=color
+        print self.brush_color
 
     def UNBIND_MOUSE_EVENTS(self):
         self.Unbind(wx.EVT_LEFT_DOWN)
@@ -775,7 +777,23 @@ class TestPanel(wx.Frame):
         state = event.GetEventObject().GetValue()
 
         if state==True:
-            parallel_frame.BIND_MOUSE_EVENTS()
+            parallel_frame.motion_sensor_list=[]
+            self.mc.Pause()
+            parallel_frame.Hide()
+            dlg = wx.ColourDialog(self)
+
+            # Ensure the full colour dialog is displayed,
+            # not the abbreviated version.
+            dlg.GetColourData().SetChooseFull(True)
+
+            if dlg.ShowModal() == wx.ID_OK:
+                color = dlg.GetColourData()
+                #print 'You selected: %s\n' % str(data.GetColour().Get())
+
+            dlg.Destroy()
+            parallel_frame.BIND_MOUSE_EVENTS(color.GetColour().Get())
+            parallel_frame.Show()
+            self.mc.Play()
         else:
             parallel_frame.UNBIND_MOUSE_EVENTS()
 
