@@ -8,9 +8,12 @@ import numpy as np
 import time
 import wx.lib.buttons
 import shutil
-import matplotlib.widgets as widgets
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Button
+try:
+    import matplotlib.widgets as widgets
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import Button
+except ImportError:
+    pass
 import math
 #import back_end
 #----------------------------------------------------------------------
@@ -95,6 +98,9 @@ class ParallelWindow(wx.Frame):
         wx.Frame.__init__(self,parent,id,title,size=sizee, pos=posi,  style = wx.CLOSE_BOX | wx.STAY_ON_TOP )
         self.zoomed_panels=[]
         self.text_labels=[]
+        self.drawing_list=[]
+        self.motion_sensor_list=[]
+        self.temp_list=[]
 
 
     def add_text_to_screen(self,text_value,text_position):
@@ -161,38 +167,51 @@ class ParallelWindow(wx.Frame):
 
     def OnLeftDown(self, event):
         pos = event.GetPositionTuple()
-        dc = wx.ClientDC(self)
+        self.temp_list.append(pos)
+        self.dc = wx.ClientDC(self)
+        self.drawing_list.append(self.dc)
         #dc.Clear()
-        dc.SetPen(wx.Pen("black", 0))
-        dc.SetBrush(wx.Brush("black"))
-        dc.DrawCircle(pos[0], pos[1], 2)
+        self.dc.SetPen(wx.Pen("black", 0))
+        self.dc.SetBrush(wx.Brush("black"))
+        self.dc.DrawCircle(pos[0], pos[1], 2)
         self.isLeftDown = True
 
 
     def OnLeftUp(self, event):
         self.isLeftDown = False
-
+        self.motion_sensor_list.append(self.temp_list)
+        self.temp_list=[]
 
     def OnMove(self, event):
         if self.isLeftDown:
             pos = event.GetPositionTuple()
-            dc = wx.ClientDC(self)
+            self.temp_list.append(pos)
+            #dc = wx.ClientDC(self)
             #dc.Clear()
-            dc.SetPen(wx.Pen("black", 0))
-            dc.SetBrush(wx.Brush("black"))
-            dc.DrawCircle(pos[0], pos[1], 2)
+            self.dc.SetPen(wx.Pen("black", 0))
+            self.dc.SetBrush(wx.Brush("black"))
+            self.dc.DrawCircle(pos[0], pos[1], 2)
 
 
     def BIND_MOUSE_EVENTS(self):
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_MOTION, self.OnMove)
+        self.Bind(wx.EVT_RIGHT_DOWN,self.clear_drawing)
 
 
     def UNBIND_MOUSE_EVENTS(self):
         self.Unbind(wx.EVT_LEFT_DOWN)
         self.Unbind(wx.EVT_LEFT_UP)
         self.Unbind(wx.EVT_MOTION)
+        self.Unbind(wx.EVT_RIGHT_DOWN)
+
+    def clear_drawing(self,event):
+        self.dc.Clear()
+        self.motion_sensor_list.pop(-1)
+        for each_action in self.motion_sensor_list:
+            for each_point in each_action:
+                self.dc.DrawCircle(each_point[0],each_point[1],2)
 
 class TestPanel(wx.Frame):
 
