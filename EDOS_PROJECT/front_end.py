@@ -810,7 +810,6 @@ class TestPanel(wx.Frame):
             dlg.Destroy()
             parallel_frame.BIND_MOUSE_EVENTS(self.color.GetColour().Get())
             parallel_frame.Show()
-            self.mc.Play()
         else:
             self.draw_color=self.color.GetColour().Get()
             parallel_frame.UNBIND_MOUSE_EVENTS()
@@ -965,11 +964,13 @@ class TestPanel(wx.Frame):
                     self.text_but.Disable()
                     self.speed_menu.cb.Disable()
                     self.zoom_but.Disable()
+                    self.draw_but.Disable()
                 else:
                     self.trim_but.SetValue(False)
                     self.text_but.Enable()
                     self.speed_menu.cb.Enable()
                     self.zoom_but.Enable()
+                    self.draw_but.Enable()
 
             if self.index==3:
                 if self.text_value!=[]:
