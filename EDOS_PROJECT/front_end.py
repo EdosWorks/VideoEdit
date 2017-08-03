@@ -8,12 +8,9 @@ import numpy as np
 import time
 import wx.lib.buttons
 import shutil
-try:
-    import matplotlib.widgets as widgets
-    import matplotlib.pyplot as plt
-    from matplotlib.widgets import Button
-except ImportError:
-    pass
+import matplotlib.widgets as widgets
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
 import math
 #import back_end
 #----------------------------------------------------------------------
@@ -102,6 +99,7 @@ class ParallelWindow(wx.Frame):
         self.motion_sensor_list=[]
         self.temp_list=[]
         self.brush_color=(0,0,0)
+        self.drawing_lock=0
 
 
     def add_text_to_screen(self,text_value,text_position):
@@ -117,6 +115,8 @@ class ParallelWindow(wx.Frame):
         self.label.SetPosition((self.set_text_position(text_position)))
         self.text_labels.append(self.label)
         frame.text_value=[self.label,text_position]
+        self.drawing_lock=1
+
 
     def set_zoom(self,event):
         self.zoom_parameters=[]
@@ -133,6 +133,7 @@ class ParallelWindow(wx.Frame):
         self.zoom_parameters.append(release)
         self.zoom_parameters.append(self.zoom_area)
         parallel_frame.Show()
+        self.drawing_lock=1
         plt.close()
         frame.mc.Play()
 
@@ -193,6 +194,9 @@ class ParallelWindow(wx.Frame):
             self.dc.SetBrush(wx.Brush(self.brush_color))
             self.dc.DrawCircle(pos[0], pos[1], 2)
 
+        if self.drawing_lock==1:
+            self.redraw_on_screen()
+            self.drawing_lock=0
 
     def BIND_MOUSE_EVENTS(self,color):
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
@@ -214,6 +218,14 @@ class ParallelWindow(wx.Frame):
         for each_action in self.motion_sensor_list:
             for each_point in each_action:
                 self.dc.DrawCircle(each_point[0],each_point[1],2)
+
+
+    def redraw_on_screen(self):
+        self.dc.Clear()
+        for each_action in self.motion_sensor_list:
+            for each_point in each_action:
+                self.dc.DrawCircle(each_point[0],each_point[1],2)
+        print self.motion_sensor_list
 
 class TestPanel(wx.Frame):
 
@@ -349,7 +361,7 @@ class TestPanel(wx.Frame):
 
 
         self.play_flag=0
-        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink',-6:'violet'}
+        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink',-6:'violet',-7:'orange'}
         self.status_panel_list=[]
         self.slider_blocks_list=[]
         self.time_elapsed=0
@@ -362,6 +374,7 @@ class TestPanel(wx.Frame):
         self.text_value=[]
         self.speed_value=1
         self.zoom_value=[]
+        self.draw_value=[]
 
 
         Label=wx.StaticText(self.text_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
@@ -371,6 +384,8 @@ class TestPanel(wx.Frame):
         self.label.SetBackgroundColour('black')
         self.label.SetForegroundColour('white')
 
+        self.operations_indices_dict={2:'trim',3:'text',4:'speed',5:'zoom',6:'shapes'}
+        self.final_operations_dict={'trim':[],'speed':[],'text':[],'zoom':[],'shapes':[]}#Every operation data is saved here
 
         #self.Bind(wx.EVT_PAINT, self.OnPaint)
 
@@ -532,10 +547,10 @@ class TestPanel(wx.Frame):
             except AttributeError:
                 pass
             video_index=self.videos_list.index(path)
-            video_width= self.images_size_list[video_index][0]
-            video_height=self.images_size_list[video_index][1]
+            self.video_width= self.images_size_list[video_index][0]
+            self.video_height=self.images_size_list[video_index][1]
             media_width=8*self.screenWidth/10
-            parallel_frame_width=(3.24*self.screenHeight/5*video_width)/video_height
+            parallel_frame_width=(3.24*self.screenHeight/5*self.video_width)/self.video_height
             displacement=(media_width-parallel_frame_width)/2
             parallel_frame.SetSize((parallel_frame_width,3.24*self.screenHeight/5))
             parallel_frame.SetPosition((self.screenWidth/10+displacement,self.screenHeight/31))
@@ -612,7 +627,7 @@ class TestPanel(wx.Frame):
     def adjust_slider_color(self,operation_id):
         previos_operation_end=0
         actual_id=0
-        if operation_id==-5 or operation_id==-6:
+        if operation_id==-5 or operation_id==-6 or operation_id==-7:
             actual_id=operation_id
             operation_id=self.mc.GetPlaybackRate()
         try:
@@ -690,13 +705,13 @@ class TestPanel(wx.Frame):
         if state==True:
             parallel_frame.Hide()
             self.mc.Pause()
-            dlg = wx.TextEntryDialog(frame, 'Enter some text','Text Entry')
+            dlg = wx.TextEntryDialog(frame, 'Enter some text','PLACE TOP LEFT OF DIALOG AT DESIRED POSITION')
             if dlg.ShowModal() == wx.ID_OK:
                 self.add_operation(3)
                 text=str(dlg.GetValue())
                 self.adjust_slider_color(-5)
                 #self.label.SetLabel(self.text_value)
-                text_position=dlg.GetScreenPosition()
+                text_position=dlg.GetScreenPositionTuple()
                 parallel_frame.add_text_to_screen(text,text_position)
                 #Label.SetBackgroundColour((255,255,255))
 
@@ -777,6 +792,8 @@ class TestPanel(wx.Frame):
         state = event.GetEventObject().GetValue()
 
         if state==True:
+            self.add_operation(6)
+            self.adjust_slider_color(-7)
             parallel_frame.motion_sensor_list=[]
             self.mc.Pause()
             parallel_frame.Hide()
@@ -787,15 +804,37 @@ class TestPanel(wx.Frame):
             dlg.GetColourData().SetChooseFull(True)
 
             if dlg.ShowModal() == wx.ID_OK:
-                color = dlg.GetColourData()
+                self.color = dlg.GetColourData()
                 #print 'You selected: %s\n' % str(data.GetColour().Get())
 
             dlg.Destroy()
-            parallel_frame.BIND_MOUSE_EVENTS(color.GetColour().Get())
+            parallel_frame.BIND_MOUSE_EVENTS(self.color.GetColour().Get())
             parallel_frame.Show()
             self.mc.Play()
         else:
+            self.draw_color=self.color.GetColour().Get()
             parallel_frame.UNBIND_MOUSE_EVENTS()
+            self.panel_width=parallel_frame.GetSize()[0]
+            self.panel_height=parallel_frame.GetSize()[1]
+            draw_list=[]
+            for each_action in parallel_frame.motion_sensor_list:
+                for each_point in each_action:
+                    relative_x=self.video_width*each_point[0]/self.panel_width
+                    relative_y=self.video_height*each_point[1]/self.panel_height
+                    pos=(relative_x,relative_y)
+                    draw_list.append(pos)
+            try:
+                draw_list=draw_list+self.draw_value[1]
+            except IndexError:
+                pass
+            self.draw_value=[self.draw_color,draw_list]
+            self.add_operation(6)
+            self.adjust_slider_color(-7)
+            self.draw_value=[]
+            parallel_frame.dc.Clear()
+            parallel_frame.motion_sensor_list=[]
+
+
 
 
 
@@ -805,7 +844,7 @@ class TestPanel(wx.Frame):
 
     def add_operation(self,index):
         self.end_time=self.mc.Tell()
-        current_operation_details=[index,self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value]
+        current_operation_details=[index,self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value,self.draw_value]
         self.operations_performed_list.append(current_operation_details)
         self.start_time=self.end_time
 
@@ -813,6 +852,54 @@ class TestPanel(wx.Frame):
 
     def on_done(self,event):
         print self.operations_performed_list
+        for each_entry in self.final_operations_dict:
+            self.final_operations_dict[each_entry]=[]
+        op_list=[[],[],[],[],[]]
+
+        for each_operation in self.operations_performed_list:
+            operation=self.operations_indices_dict[each_operation[0]]
+            print operation
+            if operation=='trim':
+                if op_list[0]==[]:
+                    op_list[0].append(each_operation[2])
+                else:
+                    op_list[0].append(each_operation[2])
+                    self.final_operations_dict[operation].append(op_list[0])
+                    op_list[0]=[]
+            if operation=='text':
+                if op_list[1]==[]:
+                    op_list[1].append(each_operation[2])
+                else:
+                    op_list[1].append(each_operation[2])
+                    datas=each_operation[4]
+                    text=str(datas[0].GetLabelText())
+                    CoOrds=datas[1]
+                    op_list[1].append(text)
+                    op_list[1].append(CoOrds)
+                    self.final_operations_dict[operation].append(op_list[1])
+                    op_list[1]=[]
+            if operation=='speed':
+                if op_list[2]==[]:
+                    op_list[2].append(each_operation[2])
+                else:
+                    op_list[2].append(each_operation[2])
+                    op_list[2].append(each_operation[5])
+                    self.final_operations_dict[operation].append(op_list[2])
+                    op_list[2]=[]
+
+
+
+
+
+
+
+
+
+
+        print self.final_operations_dict
+
+
+
         #self.sequence_video_pointer+=1
         #self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
 
@@ -840,6 +927,7 @@ class TestPanel(wx.Frame):
             self.text_value=previos_operation_data[4]
             self.speed_value=previos_operation_data[5]
             self.zoom_value=previos_operation_data[6]
+            self.draw_value=previos_operation_data[7]
 
             if self.index==2:
                 if self.trim_value==1:
@@ -874,6 +962,27 @@ class TestPanel(wx.Frame):
                     self.zoom_but.SetValue(False)
                     parallel_frame.zoom_area.Hide()
                     #self.undo_op_but.Enable()
+
+            if self.index==6:
+                if self.draw_value!=[]:
+                    self.draw_but.SetValue(True)
+                    parallel_frame.BIND_MOUSE_EVENTS(self.draw_value[0])
+                    parallel_frame.dc.Clear()
+                    parallel_frame.dc.SetPen(wx.Pen(self.draw_value[0], 0))
+                    parallel_frame.dc.SetBrush(wx.Brush(self.draw_value[0]))
+                    for each_point in self.draw_value[1]:
+                        actual_x=(each_point[0]*self.panel_width)/self.video_width
+                        actual_y=(each_point[1]*self.panel_height)/self.video_height
+                        parallel_frame.dc.DrawCircle(actual_x,actual_y,2)
+
+                    #self.undo_op_but.Disable()
+
+                else:
+                    self.draw_but.SetValue(False)
+                    parallel_frame.dc.Clear()
+                    parallel_frame.UNBIND_MOUSE_EVENTS()
+                    #self.undo_op_but.Enable()
+
             print self.index
             self.mc.SetPlaybackRate(self.speed_value)
 
@@ -936,18 +1045,6 @@ class TestPanel(wx.Frame):
         parallel_frame.Destroy()
 
 
-
-
-    '''def OnPaint(self,event):
-        """set up the device context (DC) for painting"""
-        self.dc = wx.PaintDC(self.imported_video_panel)
-        self.dc.BeginDrawing()
-        self.dc.SetPen(wx.Pen("red",style=wx.TRANSPARENT))
-        self.dc.SetBrush(wx.B rush("red", wx.SOLID))
-        # set x, y, w, h for rectangle
-        self.dc.DrawRectangle(250,250,50, 50)
-        self.dc.EndDrawing()
-        del self.dc'''
 
 app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Sports Video Editor")
