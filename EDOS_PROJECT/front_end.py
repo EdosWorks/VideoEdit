@@ -12,7 +12,7 @@ import matplotlib.widgets as widgets
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import math
-#import back_end
+import back_end
 #----------------------------------------------------------------------
 
 class StaticText(wx.StaticText):
@@ -609,7 +609,7 @@ class TestPanel(wx.Frame):
         if self.mc.Tell()>0 and self.play_flag==0:
             self.play()
             self.play_flag=1
-            #self.done_button.Disable()
+            self.done_button.Disable()
 
         value=0
         try:
@@ -686,7 +686,7 @@ class TestPanel(wx.Frame):
             self.text_but.Disable()
             self.speed_menu.cb.Disable()
             self.zoom_but.Disable()
-            #self.shape_menu.cb.Disable()
+            self.draw_but.Disable()
             self.trim_value=1
 
         else:
@@ -694,7 +694,7 @@ class TestPanel(wx.Frame):
             self.text_but.Enable()
             self.speed_menu.cb.Enable()
             self.zoom_but.Enable()
-            #self.shape_menu.cb.Enable()
+            self.draw_but.Enable()
             self.add_operation(2)
             self.trim_value=0
 
@@ -851,86 +851,87 @@ class TestPanel(wx.Frame):
 
 
     def on_done(self,event):
-        print self.operations_performed_list
-        for each_entry in self.final_operations_dict:
-            self.final_operations_dict[each_entry]=[]
-        op_list=[[],[],[],[],[]]
-        start=0
+        try:
+            print self.operations_performed_list
+            for each_entry in self.final_operations_dict:
+                self.final_operations_dict[each_entry]=[]
+            op_list=[[],[],[],[],[]]
+            start=0
 
-        for each_operation in self.operations_performed_list:
-            operation=self.operations_indices_dict[each_operation[0]]
-            print operation
+            for each_operation in self.operations_performed_list:
+                operation=self.operations_indices_dict[each_operation[0]]
+                print operation
 
-            if operation=='trim':
-                if op_list[0]==[]:
-                    op_list[0].append(each_operation[2])
-                else:
-                    op_list[0].append(each_operation[2])
-                    self.final_operations_dict[operation].append(op_list[0])
-                    op_list[0]=[]
-            if operation=='text':
-                if op_list[1]==[]:
-                    op_list[1].append(each_operation[2])
-                else:
-                    op_list[1].append(each_operation[2])
-                    datas=each_operation[4]
-                    text=str(datas[0].GetLabelText())
-                    CoOrds=datas[1]
-                    op_list[1].append(text)
-                    op_list[1].append(CoOrds)
-                    self.final_operations_dict[operation].append(op_list[1])
-                    op_list[1]=[]
-            if operation=='speed':
-                if start==0:
-                    op_list[2].append(start)
+                if operation=='trim':
+                    if op_list[0]==[]:
+                        op_list[0].append(each_operation[2])
+                    else:
+                        op_list[0].append(each_operation[2])
+                        self.final_operations_dict[operation].append(op_list[0])
+                        op_list[0]=[]
+                if operation=='text':
+                    if op_list[1]==[]:
+                        op_list[1].append(each_operation[2])
+                    else:
+                        op_list[1].append(each_operation[2])
+                        datas=each_operation[4]
+                        text=str(datas[0].GetLabelText())
+                        CoOrds=datas[1]
+                        op_list[1].append(text)
+                        op_list[1].append(CoOrds)
+                        self.final_operations_dict[operation].append(op_list[1])
+                        op_list[1]=[]
+                if operation=='speed':
+                    if start==0:
+                        op_list[2].append(start)
 
-                    op_list[2].append(each_operation[2])
-                    op_list[2].append(each_operation[5])
-                    self.final_operations_dict[operation].append(op_list[2])
-                    op_list[2]=[]
+                        op_list[2].append(each_operation[2])
+                        op_list[2].append(each_operation[5])
+                        self.final_operations_dict[operation].append(op_list[2])
+                        op_list[2]=[]
 
-                if start!=0:
-                    op_list[2].append(start)
+                    if start!=0:
+                        op_list[2].append(start)
 
-                    op_list[2].append(each_operation[2])
-                    op_list[2].append(each_operation[5])
-                    self.final_operations_dict[operation].append(op_list[2])
-                    op_list[2]=[]
-                start=each_operation[2]
+                        op_list[2].append(each_operation[2])
+                        op_list[2].append(each_operation[5])
+                        self.final_operations_dict[operation].append(op_list[2])
+                        op_list[2]=[]
+                    start=each_operation[2]
 
-            if operation=='zoom':
-                if op_list[3]==[]:
-                    op_list[3].append(each_operation[2])
-                else:
-                    op_list[3].append(each_operation[2])
-                    datas=each_operation[6]
-                    press_CoOrds=datas[0]
-                    realease_CoOrds=datas[1]
-                    op_list[3].append(press_CoOrds)
-                    op_list[3].append(realease_CoOrds)
-                    self.final_operations_dict[operation].append(op_list[3])
-                    op_list[3]=[]
+                if operation=='zoom':
+                    if op_list[3]==[]:
+                        op_list[3].append(each_operation[2])
+                    else:
+                        op_list[3].append(each_operation[2])
+                        datas=each_operation[6]
+                        press_CoOrds=datas[0]
+                        realease_CoOrds=datas[1]
+                        op_list[3].append(press_CoOrds)
+                        op_list[3].append(realease_CoOrds)
+                        self.final_operations_dict[operation].append(op_list[3])
+                        op_list[3]=[]
 
-            if operation=='shapes':
-                if op_list[4]==[]:
-                    op_list[4].append(each_operation[2])
-                else:
-                    op_list[4].append(each_operation[2])
-                    datas=each_operation[7]
-                    color=datas[0]
-                    CoOrds=datas[1]
-                    op_list[4].append(color)
-                    op_list[4].append(CoOrds)
-                    self.final_operations_dict[operation].append(op_list[4])
-                    op_list[4]=[]
+                if operation=='shapes':
+                    if op_list[4]==[]:
+                        op_list[4].append(each_operation[2])
+                    else:
+                        op_list[4].append(each_operation[2])
+                        datas=each_operation[7]
+                        color=datas[0]
+                        CoOrds=datas[1]
+                        op_list[4].append(color)
+                        op_list[4].append(CoOrds)
+                        self.final_operations_dict[operation].append(op_list[4])
+                        op_list[4]=[]
 
-
-        print self.final_operations_dict
-
-
-
-        #self.sequence_video_pointer+=1
-        #self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
+            self.final_operations_dict['speed'].append([start,self.mc.Length(),self.speed_value])
+            print self.final_operations_dict
+            back_end.get_video_data(self.sequence_video_list[self.sequence_video_pointer],self.final_operations_dict)
+            self.sequence_video_pointer+=1
+            self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
+        except IndexError:
+            pass #add the concatenation of all videos function or code here
 
 
 
