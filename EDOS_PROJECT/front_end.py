@@ -876,8 +876,11 @@ class TestPanel(wx.Frame):
                         datas=each_operation[4]
                         text=str(datas[0].GetLabelText())
                         CoOrds=datas[1]
+                        modi_x=(self.video_width*CoOrds[0])/self.panel_width
+                        modi_y=(self.video_height*CoOrds[1])/self.panel_height
+                        modi_CoOrds=(modi_x,modi_y)
                         op_list[1].append(text)
-                        op_list[1].append(CoOrds)
+                        op_list[1].append(modi_CoOrds)
                         self.final_operations_dict[operation].append(op_list[1])
                         op_list[1]=[]
                 if operation=='speed':
