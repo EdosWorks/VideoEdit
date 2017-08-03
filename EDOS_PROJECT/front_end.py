@@ -855,10 +855,12 @@ class TestPanel(wx.Frame):
         for each_entry in self.final_operations_dict:
             self.final_operations_dict[each_entry]=[]
         op_list=[[],[],[],[],[]]
+        start=0
 
         for each_operation in self.operations_performed_list:
             operation=self.operations_indices_dict[each_operation[0]]
             print operation
+
             if operation=='trim':
                 if op_list[0]==[]:
                     op_list[0].append(each_operation[2])
@@ -879,21 +881,48 @@ class TestPanel(wx.Frame):
                     self.final_operations_dict[operation].append(op_list[1])
                     op_list[1]=[]
             if operation=='speed':
-                if op_list[2]==[]:
-                    op_list[2].append(each_operation[2])
-                else:
+                if start==0:
+                    op_list[2].append(start)
+
                     op_list[2].append(each_operation[2])
                     op_list[2].append(each_operation[5])
                     self.final_operations_dict[operation].append(op_list[2])
                     op_list[2]=[]
 
+                if start!=0:
+                    op_list[2].append(start)
 
+                    op_list[2].append(each_operation[2])
+                    op_list[2].append(each_operation[5])
+                    self.final_operations_dict[operation].append(op_list[2])
+                    op_list[2]=[]
+                start=each_operation[2]
 
+            if operation=='zoom':
+                if op_list[3]==[]:
+                    op_list[3].append(each_operation[2])
+                else:
+                    op_list[3].append(each_operation[2])
+                    datas=each_operation[6]
+                    press_CoOrds=datas[0]
+                    realease_CoOrds=datas[1]
+                    op_list[3].append(press_CoOrds)
+                    op_list[3].append(realease_CoOrds)
+                    self.final_operations_dict[operation].append(op_list[3])
+                    op_list[3]=[]
 
-
-
-
-
+            if operation=='shapes':
+                if op_list[4]==[]:
+                    op_list[4].append(each_operation[2])
+                else:
+                    op_list[4].append(each_operation[2])
+                    datas=each_operation[7]
+                    color=datas[0]
+                    CoOrds=datas[1]
+                    op_list[4].append(color)
+                    op_list[4].append(CoOrds)
+                    self.final_operations_dict[operation].append(op_list[4])
+                    op_list[4]=[]
 
 
         print self.final_operations_dict
