@@ -50,8 +50,8 @@ class dropDown_menu:
 
 
         sampleList = []
-        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter-self.get_relative_X(65),self.get_relative_Y(90)),
-                              size=(self.get_relative_X(100),self.get_relative_Y(50)),
+        self.cb = wx.ComboBox(place,value=default_value,pos=(dropDown_menu.counter-self.get_relative_X(85),self.get_relative_Y(90)),
+                              size=(self.get_relative_X(80),self.get_relative_Y(50)),
                               choices=sampleList)
         self.widgetMaker(self.cb, option_list)
 
@@ -270,32 +270,36 @@ class TestPanel(wx.Frame):
         bSizer = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(5),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        load_button = wx.Button(self.video_operators_panel,label="Load File",pos=(self.get_relative_X(5),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         load_button.Bind(wx.EVT_BUTTON, self.OnLoadFile, load_button)
 
-        trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170-45),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        trim_button = wx.ToggleButton(self.video_operators_panel, -1, "TRIM",pos=(self.get_relative_X(170-65),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         trim_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_trim, trim_button)
         self.trim_but = trim_button
 
-        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(450-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        text_button = wx.ToggleButton(self.video_operators_panel, -1, "ADD TEXT",pos=(self.get_relative_X(450-145),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         text_button.Bind(wx.EVT_TOGGLEBUTTON, self.on_text_entry, text_button)
         self.text_but=text_button
 
-        self.done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(900-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.done_button = wx.Button(self.video_operators_panel, -1, "DONE",pos=(self.get_relative_X(900-155),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         self.done_button.Bind(wx.EVT_BUTTON, self.on_done, self.done_button)
 
-        self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO CHANGE",pos=(self.get_relative_X(800-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.undo_op_but = wx.Button(self.video_operators_panel, -1, "UNDO",pos=(self.get_relative_X(800-155),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         self.undo_op_but.Bind(wx.EVT_BUTTON, self.undo_operation, self.undo_op_but)
 
-        self.zoom_but = wx.ToggleButton(self.video_operators_panel, -1, "ZOOM",pos=(self.get_relative_X(690-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.zoom_but = wx.ToggleButton(self.video_operators_panel, -1, "ZOOM",pos=(self.get_relative_X(690-155),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         self.zoom_but.Bind(wx.EVT_TOGGLEBUTTON, self.on_zoom, self.zoom_but)
 
-        self.draw_but = wx.ToggleButton(self.video_operators_panel, -1, "DRAW",pos=(self.get_relative_X(570-105),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        self.draw_but = wx.ToggleButton(self.video_operators_panel, -1, "DRAW",pos=(self.get_relative_X(570-155),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         self.draw_but.Bind(wx.EVT_TOGGLEBUTTON, self.on_draw, self.draw_but)
 
 
-        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(900),self.get_relative_Y(87)),size=(self.get_relative_X(100),self.get_relative_Y(30)))
+        exit_button = wx.Button(self.video_operators_panel, -1, "EXIT",pos=(self.get_relative_X(940),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
         exit_button.Bind(wx.EVT_BUTTON, self.ShutdownDemo, exit_button)
+
+        self.virtual_pause_but = wx.ToggleButton(self.video_operators_panel, -1, "PAUSE",pos=(self.get_relative_X(850),self.get_relative_Y(87)),size=(self.get_relative_X(80),self.get_relative_Y(30)))
+        self.virtual_pause_but.Bind(wx.EVT_TOGGLEBUTTON, self.virtual_pause, self.virtual_pause_but)
+
 
         self.undo_imp_but = wx.Button(self.import_undo_panel, -1, "UNDO IMPORT",pos=(0,0),size=(1*self.screenWidth/10,11*self.screenHeight/220))
         self.undo_imp_but.Bind(wx.EVT_BUTTON, self.undo_import, self.undo_imp_but)
@@ -304,16 +308,17 @@ class TestPanel(wx.Frame):
         self.undo_seq_but.Bind(wx.EVT_BUTTON, self.undo_sequence, self.undo_seq_but)
 
 
-        bSizer.Add(load_button,0,wx.ALL,5)
-        bSizer.Add(trim_button,0,wx.ALL,5)
-        bSizer.Add(text_button,0,wx.ALL,5)
-        bSizer.Add(exit_button,0,wx.ALL,5)
-        bSizer.Add(self.undo_imp_but,0,wx.ALL,5)
-        bSizer.Add(self.undo_seq_but,0,wx.ALL,5)
-        bSizer.Add(self.done_button,0,wx.ALL,5)
-        bSizer.Add(self.zoom_but,0,wx.ALL,5)
-        bSizer.Add(self.draw_but,0,wx.ALL,5)
-        bSizer.Add(self.undo_op_but,0,wx.ALL,5)
+        bSizer.Add(load_button,0,wx.ALL,3)
+        bSizer.Add(trim_button,0,wx.ALL,3)
+        bSizer.Add(text_button,0,wx.ALL,3)
+        bSizer.Add(exit_button,0,wx.ALL,3)
+        bSizer.Add(self.virtual_pause_but,0,wx.ALL,3)
+        bSizer.Add(self.undo_imp_but,0,wx.ALL,3)
+        bSizer.Add(self.undo_seq_but,0,wx.ALL,3)
+        bSizer.Add(self.done_button,0,wx.ALL,3)
+        bSizer.Add(self.zoom_but,0,wx.ALL,3)
+        bSizer.Add(self.draw_but,0,wx.ALL,3)
+        bSizer.Add(self.undo_op_but,0,wx.ALL,3)
 
         self.SetSizer( bSizer )
 
@@ -361,7 +366,7 @@ class TestPanel(wx.Frame):
 
 
         self.play_flag=0
-        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink',-6:'violet',-7:'orange'}
+        self.current_operation_dict={0.25:'brown',0.5:'blue',1:'green',1.5:'yellow',2:'red',0:'black',-5:'pink',-6:'violet',-7:'orange',-8:'white'}
         self.status_panel_list=[]
         self.slider_blocks_list=[]
         self.time_elapsed=0
@@ -375,6 +380,9 @@ class TestPanel(wx.Frame):
         self.speed_value=1
         self.zoom_value=[]
         self.draw_value=[]
+        self.virtual_pause_value=[]
+
+        self.time_counter=0
 
 
         Label=wx.StaticText(self.text_panel,id=wx.ID_ANY, label='',size=(8*self.screenWidth/10,1.1*self.screenHeight/20),style=wx.ALIGN_CENTRE)
@@ -384,8 +392,8 @@ class TestPanel(wx.Frame):
         self.label.SetBackgroundColour('black')
         self.label.SetForegroundColour('white')
 
-        self.operations_indices_dict={2:'trim',3:'text',4:'speed',5:'zoom',6:'shapes'}
-        self.final_operations_dict={'trim':[],'speed':[],'text':[],'zoom':[],'shapes':[]}#Every operation data is saved here
+        self.operations_indices_dict={2:'trim',3:'text',4:'speed',5:'zoom',6:'shapes',7:'vPause'}
+        self.final_operations_dict={'trim':[],'speed':[],'text':[],'zoom':[],'shapes':[],'vPause':[]}#Every operation data is saved here
 
         #self.Bind(wx.EVT_PAINT, self.OnPaint)
 
@@ -627,7 +635,7 @@ class TestPanel(wx.Frame):
     def adjust_slider_color(self,operation_id):
         previos_operation_end=0
         actual_id=0
-        if operation_id==-5 or operation_id==-6 or operation_id==-7:
+        if operation_id==-5 or operation_id==-6 or operation_id==-7 or operation_id==-8:
             actual_id=operation_id
             operation_id=self.mc.GetPlaybackRate()
         try:
@@ -640,7 +648,7 @@ class TestPanel(wx.Frame):
         color=self.current_operation_dict[operation_id]
         new_color_panel.SetBackgroundColour(color) #do this while creating the panel; avoid fetching
         if actual_id!=0:
-            block=wx.Panel(self.slider_panel,size=(self.get_relative_X(10),self.get_relative_Y(20)),pos=(self.get_relative_X(7)+self.time_elapsed,self.get_relative_Y(20)),style=wx.SIMPLE_BORDER)
+            block=wx.Panel(self.slider_panel,size=(self.get_relative_X(5),self.get_relative_Y(20)),pos=(self.get_relative_X(7)+self.time_elapsed,self.get_relative_Y(20)),style=wx.SIMPLE_BORDER)
             color=self.current_operation_dict[actual_id]
             block.SetBackgroundColour(color)
             self.status_panel_list.append([new_color_panel,block])
@@ -834,16 +842,42 @@ class TestPanel(wx.Frame):
             parallel_frame.motion_sensor_list=[]
 
 
+    def virtual_pause(self,event):
+        state = event.GetEventObject().GetValue()
+        self.virtual_timer=wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.count_time,self.virtual_timer)
+
+        if state==True:
+            self.mc.Pause()
+            self.virtual_timer=wx.Timer(self)
+            self.Bind(wx.EVT_TIMER, self.count_time,self.virtual_timer)
+            #self.add_operation(7)
+            self.adjust_slider_color(-8)
+            self.virtual_timer.Start(1000)
+        else:
+            self.virtual_pause_but.SetLabelText('PAUSE')
+            self.virtual_pause_value.append(self.mc.Tell())
+            self.virtual_pause_value.append(self.time_counter)
+            self.add_operation(7)
+            self.virtual_pause_value=[]
+            #self.adjust_slider_color(-8)
+            print self.time_counter
+            self.time_counter=0
+            self.virtual_timer.Stop()
+            del self.virtual_timer
+            self.mc.Play()
 
 
 
 
-
+    def count_time(self,event):
+        self.time_counter+=1
+        self.virtual_pause_but.SetLabelText(str(self.time_counter))
 
 
     def add_operation(self,index):
         self.end_time=self.mc.Tell()
-        current_operation_details=[index,self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value,self.draw_value]
+        current_operation_details=[index,self.start_time,self.end_time,self.trim_value,self.text_value,self.speed_value,self.zoom_value,self.draw_value,self.virtual_pause_value]
         self.operations_performed_list.append(current_operation_details)
         self.start_time=self.end_time
 
@@ -854,7 +888,7 @@ class TestPanel(wx.Frame):
             print self.operations_performed_list
             for each_entry in self.final_operations_dict:
                 self.final_operations_dict[each_entry]=[]
-            op_list=[[],[],[],[],[]]
+            op_list=[[],[],[],[],[],[]]
             start=0
 
             for each_operation in self.operations_performed_list:
@@ -926,6 +960,13 @@ class TestPanel(wx.Frame):
                         op_list[4].append(CoOrds)
                         self.final_operations_dict[operation].append(op_list[4])
                         op_list[4]=[]
+                if operation=='vPause':
+                    datas=each_operation[8]
+                    op_list[5]=datas
+                    self.final_operations_dict[operation].append(op_list[5])
+                    op_list[5]=[]
+                    self.virtual_pause_value=[]
+
 
             self.final_operations_dict['speed'].append([start,self.mc.Length(),self.speed_value])
             print self.final_operations_dict
@@ -1016,6 +1057,8 @@ class TestPanel(wx.Frame):
                     parallel_frame.dc.Clear()
                     parallel_frame.UNBIND_MOUSE_EVENTS()
                     #self.undo_op_but.Enable()
+            if self.index==7:
+                pass
 
             print self.index
             self.mc.SetPlaybackRate(self.speed_value)
