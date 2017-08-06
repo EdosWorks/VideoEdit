@@ -14,6 +14,8 @@ from matplotlib.widgets import Button
 import math
 import back_end
 #----------------------------------------------------------------------
+wildcard = "Python source (*.py)|*.py|" \
+            "All files (*.*)|*.*"
 
 class StaticText(wx.StaticText):
     """
@@ -395,6 +397,7 @@ class TestPanel(wx.Frame):
         self.operations_indices_dict={2:'trim',3:'text',4:'speed',5:'zoom',6:'shapes',7:'vPause'}
         self.final_operations_dict={'trim':[],'speed':[],'text':[],'zoom':[],'shapes':[],'vPause':[]}#Every operation data is saved here
 
+        self.currentDirectory = os.getcwd()
         #self.Bind(wx.EVT_PAINT, self.OnPaint)
 
        # Create some controls
@@ -974,7 +977,29 @@ class TestPanel(wx.Frame):
             self.sequence_video_pointer+=1
             self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
         except IndexError:
-            pass #add the concatenation of all videos function or code here
+            #current_path=back_end.concatenate_all_videos() #add the concatenation of all videos function or code here
+            parallel_frame.Hide()
+            save_path=self.onSaveFile()
+            parallel_frame.Show()
+            #shutil.move(current_path, save_path)
+
+
+
+
+    def onSaveFile(self):
+        """
+        Create and show the Save FileDialog
+        """
+        dlg = wx.FileDialog(
+            self, message="Save file as ...",
+            defaultDir=self.currentDirectory,
+            defaultFile="", wildcard=wildcard, style=wx.SAVE
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            print "You chose the following filename: %s" % path
+            return path
+        dlg.Destroy()
 
 
 
