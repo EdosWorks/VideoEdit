@@ -67,21 +67,24 @@ def trimmer(original_video,edited_video_name,modifier_list):
      print(textfilename)
      #Opening a file to write the names of the videos to be concantenated 
      f1=open(textfilename,'w')
-     name=str(1)+extension
+     name=pname+str(1)+extension
      ffmpeg_extract_subclip(original_video,0,starttime,targetname=name)
-     f1.write("file"+pname+name+"\n")
-     name=str(2)+extension
+     f1.write("file "+modify_filename(name)+"\n")
+     name=pname+str(2)+extension
      ffmpeg_extract_subclip(original_video,endtime+1,math.ceil(clip.duration),targetname=name)
-     f1.write("file"+pname+name+"\n")
+     f1.write("file "+modify_filename(name)+"\n")
      f1.close()
 
      #FFMPEG Command to concatenate videos 
+     print("0000000000"+edited_video_name+"000000000000000")
      cmd="ffmpeg -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video_name
      p = subprocess.Popen(cmd.split(), shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
      #subprocess_call(cmd.split())
-
+     os.remove("C:\\edited_videos\\1.mp4")
+     os.remove("C:\\edited_videos\\2.mp4")
+     print("done with function")
 
 
 def save_feature():
@@ -108,8 +111,10 @@ def speed_changer(original_video,edited_video_name,modifier_list):
           2-The part which needs speed modification
           3-End time till the video lasts
           These three parts are concatenated to give back the input video with modified speed'''
-
-
+     pname=path_to_edited_videos+"\\"
+     extension=original_video[original_video.rfind("."):]
+     edited_video_name=modify_filename(edited_video_name)
+    
      if modifier_list[2]==0:
           v_speed=0.68
           a_speed=1.467
@@ -123,10 +128,7 @@ def speed_changer(original_video,edited_video_name,modifier_list):
           v_speed=2.0
           a_speed=0.5
           
-     vname=modify_filename(edited_video_name)
-     pname=modify_filename(path_to_edited_videos)+"\\"+"\\"
-     extension=original_video[original_video.rfind("."):]
-     ##############THE FOLLOWING LOOP IS TO MODIFY THE PATH NAME SUCH THAT IT IS ACCEPATBLE BY THE COMMADLINE FUNCTION##################
+     
 
      #An object created   
      clip = VideoFileClip(original_video_file) 
@@ -168,20 +170,18 @@ def get_video_data(file_path,operations_dictionary):
     
     create_new_directory()
     ## CREATE NEW VIDEO FILENAME 
-    extension_begin_pos=file_path.rfind(".")
-    extension=file_path[extension_begin_pos:]
-    new_name=file_path[:extension_begin_pos]
-    new_name+="_edit"+file_path[extension_begin_pos:]
-
+    new_name=path_to_edited_videos+file_path[file_path.rfind("\\"):file_path.rfind(".")]
+    new_name+="_edit"+file_path[file_path.rfind("."):]
+    print(new_name+"******")
     edited_videos_list.append(new_name)
 
     if "trim" in operations_dictionary.keys():
         for i in operations_dictionary["trim"]:
             trimmer(file_path,new_name,i)
 
-    if "speed" in operations_dictionary.keys():
+    '''if "speed" in operations_dictionary.keys():
         for i in operations_dictionary["speed"]:
-            trimmer(file_path,new_name,i)
+            trimmer(file_path,new_name,i)'''
 
     
         
