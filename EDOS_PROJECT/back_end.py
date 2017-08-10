@@ -25,7 +25,7 @@ def ffmpeg_extract_subclip(filename, t1, t2, targetname=None):
     p = subprocess.Popen(cmd, shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = p.communicate()[0]
-    #subprocess_call(cmd)
+    
 
 def create_new_directory():
     ## Create a folder 
@@ -51,7 +51,7 @@ def trimmer(original_video,edited_video_name,modifier_list):
      
      pname=path_to_edited_videos+"\\"
      extension=original_video[original_video.rfind("."):]
-     edited_video_name=modify_filename(edited_video_name)
+     edited_video=modify_filename(edited_video_name)
      ##############THE FOLLOWING LOOP IS TO MODIFY THE PATH NAME SUCH THAT IT IS ACCEPATBLE BY THE COMMADLINE FUNCTION##################
 
      #An object created   
@@ -77,7 +77,7 @@ def trimmer(original_video,edited_video_name,modifier_list):
 
      #FFMPEG Command to concatenate videos 
      print("0000000000"+edited_video_name+"000000000000000")
-     cmd="ffmpeg -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video_name
+     cmd="ffmpeg -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video
      p = subprocess.Popen(cmd.split(), shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
@@ -85,6 +85,7 @@ def trimmer(original_video,edited_video_name,modifier_list):
      os.remove("C:\\edited_videos\\1.mp4")
      os.remove("C:\\edited_videos\\2.mp4")
      print("done with function")
+     return edited_video_name
 
 
 def save_feature():
@@ -115,54 +116,68 @@ def speed_changer(original_video,edited_video_name,modifier_list):
      extension=original_video[original_video.rfind("."):]
      edited_video_name=modify_filename(edited_video_name)
     
-     if modifier_list[2]==0:
+     if modifier_list[2]==1.5:
           v_speed=0.68
           a_speed=1.467
-     elif modifier_list[2]==1:
+     elif modifier_list[2]==2.0:
           v_speed=0.5
           a_speed=2.0
-     elif modifier_list[2]==2:
+     elif modifier_list[2]==0.5:
           v_speed=1.467
           a_speed=0.68
-     elif modifier_list[2]==3:
+     elif modifier_list[2]==0.25:
           v_speed=2.0
           a_speed=0.5
-          
+     elif modifier_list[2]==1:
+         return
      
 
      #An object created   
-     clip = VideoFileClip(original_video_file) 
+     clip = VideoFileClip(original_video) 
 
      #Converting the start and end times to     
      starttime=math.ceil(modifier_list[0]/1000)
      endtime=math.ceil(modifier_list[1]/1000)
 
      #Creating the text file 
-     textfilename+=path_to_edited_videos+"\\concat.txt"
+     textfilename=path_to_edited_videos+"\\concat.txt"
 
      #Opening a file to write the names of the videos to be concantenated 
      f1=open(textfilename,'w')
-     name=str(1)+extension
-     ffmpeg_extract_subclip(original_video_file,0,starttime,targetname=name)
-     f1.write("file"+pname+name+"\n")
-     to_modify_name=str(2)+extension
-     ffmpeg_extract_subclip(original_video_file,starttime,endtime,targetname=to_modify_name)
-     f1.write("file"+pname+to_modify_name+"\n")
-     name=str(3)+extension
-     f1.write("file"+pname+name+"\n")
+
+     name=path_to_edited_videos+"\\"+str(1)+extension
+     ffmpeg_extract_subclip(original_video,0,starttime,targetname=name)   #Part1
+     f1.write("file "+modify_filename(name)+"\n")
+
+     to_modify_name=path_to_edited_videos+"\\"+str(2)+extension
+     ffmpeg_extract_subclip(original_video,starttime,endtime,targetname=to_modify_name)#Part2
+     f1.write("file "+modify_filename(path_to_edited_videos)+"\\"+"\\"+str(23)+extension+"\n")
+
+     name=path_to_edited_videos+"\\"+str(3)+extension
+     ffmpeg_extract_subclip(original_video,endtime+1,math.ceil(clip.duration),targetname=name)#Part3
+     f1.write("file "+modify_filename(name)+"\n")
      
      f1.close()
      
      #Speeding up the specified part
-     cmd="ffmpeg -i "+original_video_file+" -vf \"setpts="+str(v_speed)+"*PTS\" -filter:a \"atempo="+str(a_speed)+" "+pname+name
-     p = subprocess.Popen(cmd, shell=True,
+     cmd="ffmpeg -i "+to_modify_name+" -vf setpts="+str(v_speed)+"*PTS -filter:a atempo="+str(a_speed)+" "+path_to_edited_videos+"\\"+str(23)+extension
+     print(cmd)
+     p = subprocess.Popen(cmd.split(), shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
-     
+     print(output)
      #FFMPEG Command to concatenate videos  
-     cmd="ffmpeg -f concat -safe 0 -i "+textfilename+" -c copy "+original_video_file
-     subprocess_call(cmd.split())
-
+     cmd="ffmpeg -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video_name
+     p = subprocess.Popen(cmd.split(), shell=True,
+                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+     output = p.communicate()[0]
+     print("concat gave-->"+output)
+     os.remove("C:\\edited_videos\\1.mp4")
+     os.remove("C:\\edited_videos\\2.mp4")
+     os.remove("C:\\edited_videos\\3.mp4")
+     os.remove("C:\\edited_videos\\23.mp4")
+     
+    
           
 ###################                     THE ACTUAL INTERFACING FUNCTION                  #################
 def get_video_data(file_path,operations_dictionary):
@@ -177,11 +192,12 @@ def get_video_data(file_path,operations_dictionary):
 
     if "trim" in operations_dictionary.keys():
         for i in operations_dictionary["trim"]:
-            trimmer(file_path,new_name,i)
+            new_name=trimmer(file_path,new_name,i)
 
-    '''if "speed" in operations_dictionary.keys():
-        for i in operations_dictionary["speed"]:
-            trimmer(file_path,new_name,i)'''
+    if "speed" in operations_dictionary.keys():
+        list_of_speed_changes=operations_dictionary["speed"]
+        for i in range(1,len(list_of_speed_changes)):            
+            speed_changer(file_path,new_name,list_of_speed_changes[i])
 
     
         
