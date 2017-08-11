@@ -89,6 +89,7 @@ class dropDown_menu:
 
 
 
+
 class ParallelWindow(wx.Frame):
     isLeftDown = False
     def __init__(self,parent,id,title,sizee,posi):
@@ -892,7 +893,8 @@ class TestPanel(wx.Frame):
             self.final_operations_dict[each_entry]=[]
         op_list=[[],[],[],[],[],[]]
         start=0
-
+        self.panel_width=parallel_frame.GetSize()[0]
+        self.panel_height=parallel_frame.GetSize()[1]
         for each_operation in self.operations_performed_list:
             operation=self.operations_indices_dict[each_operation[0]]
             print operation
