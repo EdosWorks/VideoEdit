@@ -7,6 +7,8 @@ from moviepy.config import get_setting
 ## A list to store the paths of the edited video list for later use
 edited_videos_list=[]
 path_to_edited_videos="C:\\edited_videos"
+output_video_name="C:\edited_videos\final.mp4"
+
 
 def ffmpeg_extract_subclip(filename, t1, t2, targetname=None):
     """ makes a new video file playing video file ``filename`` between
@@ -77,7 +79,7 @@ def trimmer(original_video,edited_video_name,modifier_list):
 
      #FFMPEG Command to concatenate videos 
      print("0000000000"+edited_video_name+"000000000000000")
-     cmd="ffmpeg -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video
+     cmd="ffmpeg -y -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video
      p = subprocess.Popen(cmd.split(), shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
@@ -94,15 +96,18 @@ def save_feature():
      ## Text file to store the names of the video files to be stitched 
      ## The output Video name to be sent with the path 
 
-     videos_file=open("C:\\edited_videos\\concatall.txt",'w')
+     videos_file=open("C:\edited_videos\concatall.txt",'w')
      for i in edited_videos_list:
           modified_name=modify_filename(i)
-          videos_file.write("file"+modified_name+'\n')
+          videos_file.write("file "+modified_name+'\n')
      videos_file.close()
 
-     cmd="ffmpeg -f concat -safe 0 -i "+videos_file+" -c copy "+output_video_name
-     subprocess_call(cmd.split())
+     cmd="ffmpeg -y -f concat -safe 0 -i C:\\edited_videos\\concatall.txt -c copy C:\\edited_videos\\final_video.mp4"
      
+     p = subprocess.Popen(cmd.split(), shell=True,
+                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+     output = p.communicate()[0]
+     print(output)
 
 def speed_changer(original_video,edited_video_name,modifier_list):
      ''' The following function take the starting , ending timesand the speed 
@@ -160,14 +165,14 @@ def speed_changer(original_video,edited_video_name,modifier_list):
      f1.close()
      
      #Speeding up the specified part
-     cmd="ffmpeg -i "+to_modify_name+" -vf setpts="+str(v_speed)+"*PTS -filter:a atempo="+str(a_speed)+" "+path_to_edited_videos+"\\"+str(23)+extension
+     cmd="ffmpeg -y -i "+to_modify_name+" -vf setpts="+str(v_speed)+"*PTS -filter:a atempo="+str(a_speed)+" "+path_to_edited_videos+"\\"+str(23)+extension
      print(cmd)
      p = subprocess.Popen(cmd.split(), shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
      print(output)
      #FFMPEG Command to concatenate videos  
-     cmd="ffmpeg -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video_name
+     cmd="ffmpeg -y -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video_name
      p = subprocess.Popen(cmd.split(), shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
@@ -176,13 +181,24 @@ def speed_changer(original_video,edited_video_name,modifier_list):
      os.remove("C:\\edited_videos\\2.mp4")
      os.remove("C:\\edited_videos\\3.mp4")
      os.remove("C:\\edited_videos\\23.mp4")
-     
+     return edited_video_name 
     
-          
-###################                     THE ACTUAL INTERFACING FUNCTION                  #################
+def putText(original_video,new_name,text_list):
+    input_file=modify_filename(original_video)
+    for i in text_list:
+        start=i[0]/1000
+        end=i[1]/1000
+        cmd="ffmpeg -y -i "+input_file+" -vf drawtext=enable=\'between(t,"+str(start)+","+str(end)+")\':fontfile=C:\\\\\\\\ffmpeg\\\\\\\\arial.ttf:text="+i[2]+":x="+str(i[3][0])+":y="+str(i[3][1])+" "+modify_filename(new_name)
+        print(cmd)
+        p = subprocess.Popen(cmd.split(), shell=True,
+                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        output = p.communicate()[0]
+        print(output)
+    #print(text_list[0][3])
+    
+###################--------------------THE ACTUAL INTERFACING FUNCTION------------------#################
 def get_video_data(file_path,operations_dictionary):
     #Call to create new directory function
-    
     create_new_directory()
     ## CREATE NEW VIDEO FILENAME 
     new_name=path_to_edited_videos+file_path[file_path.rfind("\\"):file_path.rfind(".")]
@@ -190,16 +206,18 @@ def get_video_data(file_path,operations_dictionary):
     print(new_name+"******")
     edited_videos_list.append(new_name)
 
-    if "trim" in operations_dictionary.keys():
+    if operations_dictionary["trim"]!=[]:
         for i in operations_dictionary["trim"]:
             new_name=trimmer(file_path,new_name,i)
 
-    if "speed" in operations_dictionary.keys():
+    if operations_dictionary["speed"]!=[]:
         list_of_speed_changes=operations_dictionary["speed"]
         for i in range(1,len(list_of_speed_changes)):            
             speed_changer(file_path,new_name,list_of_speed_changes[i])
 
-    
+    if operations_dictionary["text"]!=[]:
+        putText(file_path,new_name,operations_dictionary["text"])
+
         
 
 
