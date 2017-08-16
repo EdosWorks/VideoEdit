@@ -238,6 +238,7 @@ class ParallelWindow(wx.Frame):
         keycode = event.GetKeyCode()
         if keycode==wx.WXK_ESCAPE:
             frame.Iconize()
+            self.drawing_lock=1
 
 
 
@@ -1148,6 +1149,7 @@ class TestPanel(wx.Frame):
             parallel_frame.Hide()
         else:
             parallel_frame.Show()
+            parallel_frame.drawing_lock=1
 
 
 
