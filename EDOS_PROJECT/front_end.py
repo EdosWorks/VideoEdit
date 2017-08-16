@@ -103,6 +103,9 @@ class ParallelWindow(wx.Frame):
         self.temp_list=[]
         self.brush_color=(0,0,0)
         self.drawing_lock=0
+        self.Bind(wx.EVT_KEY_DOWN,self.parallel_disp_control)
+
+
 
 
     def add_text_to_screen(self,text_value,text_position):
@@ -229,6 +232,15 @@ class ParallelWindow(wx.Frame):
             for each_point in each_action:
                 self.dc.DrawCircle(each_point[0],each_point[1],2)
         print self.motion_sensor_list
+
+
+    def parallel_disp_control(self,event):
+        keycode = event.GetKeyCode()
+        if keycode==wx.WXK_ESCAPE:
+            frame.Iconize()
+
+
+
 
 class TestPanel(wx.Frame):
 
