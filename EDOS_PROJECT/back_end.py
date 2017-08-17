@@ -3,6 +3,7 @@ from moviepy.editor import *
 import math
 import os
 from moviepy.config import get_setting
+import cv2
 
 ## A list to store the paths of the edited video list for later use
 edited_videos_list=[]
@@ -107,7 +108,9 @@ def save_feature():
      p = subprocess.Popen(cmd.split(), shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
-     print(output)
+     print (output)
+     return "C:\\edited_videos\\final_video.mp4"
+     
 
 def speed_changer(original_video,edited_video_name,modifier_list):
      ''' The following function take the starting , ending timesand the speed 
@@ -218,6 +221,26 @@ def get_video_data(file_path,operations_dictionary):
     if operations_dictionary["text"]!=[]:
         putText(file_path,new_name,operations_dictionary["text"])
 
+    '''if operations_dictionary["shapes"]:
+        parameter_list=operations_dictionary["shapes"]
+        print(parameter_list)
+
+        
+        rgb_value=parameter_list[0][2]
+        #list_points=[(0,0),(10,10),(120,120),(14,14),(200,200),(202,202),(241,241)]
+
+        for i in range(1,len(parameter_list[0][3]),1):
+             img = cv2.imread('frame455.jpg')
+             start=parameter_list[0][3][i-1]
+             end=parameter_list[0][3][i]
+             cv2.line(img,start,end,rgb_value)
+             cv2.imwrite('frame455.jpg',img)
+
+
+
+        cv2.imshow("img",img)
+        cv2.waitKey(0) '''
+        
         
 
 
