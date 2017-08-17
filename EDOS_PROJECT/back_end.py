@@ -80,8 +80,10 @@ def trimmer(original_video,edited_video_name,modifier_list):
 
      #FFMPEG Command to concatenate videos 
      print("0000000000"+edited_video_name+"000000000000000")
-     cmd="ffmpeg -y -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video
-     p = subprocess.Popen(cmd.split(), shell=True,
+     cmd = [get_setting("FFMPEG_BINARY"),"-y",
+      "-f","concat","-safe","0","-i", textfilename,"-c","copy",edited_video]
+    #cmd="ffmpeg -y -f concat -safe 0 -i "+textfilename+" -c copy "+edited_video
+     p = subprocess.Popen(cmd, shell=True,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
      output = p.communicate()[0]
      #subprocess_call(cmd.split())
