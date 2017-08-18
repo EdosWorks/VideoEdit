@@ -992,11 +992,11 @@ class TestPanel(wx.Frame):
             self.sequence_video_pointer+=1
             self.DoLoadFile(self.sequence_video_list[self.sequence_video_pointer])
         except IndexError:
-            #current_path=back_end.concatenate_all_videos() #add the concatenation of all videos function or code here
+            current_path=back_end.save_feature() #add the concatenation of all videos function or code here
             parallel_frame.Hide()
             save_path=self.onSaveFile()
             parallel_frame.Show()
-            #shutil.move(current_path, save_path)
+            shutil.move(current_path, save_path)
 
 
 
