@@ -223,14 +223,35 @@ def get_video_data(file_path,operations_dictionary):
     if operations_dictionary["text"]!=[]:
         putText(file_path,new_name,operations_dictionary["text"])
 
-    '''if operations_dictionary["shapes"]:
+    if operations_dictionary["shapes"]:
         parameter_list=operations_dictionary["shapes"]
         print(parameter_list)
 
         
         rgb_value=parameter_list[0][2]
-        #list_points=[(0,0),(10,10),(120,120),(14,14),(200,200),(202,202),(241,241)]
-
+        '''referring the format of the dictionary passed from the front end 
+        #parameter_list[0][3] is the list of tuples , where each tuple is of the form (x coordinate , y coordinate)
+        #the following code write the drawing onto the image frame455 that has been extracted from the video previously
+        #replace it with the image that exists 
+        # when any drawing is done on the video from front end it will go onto this image (which is as of now NOT  a frame of the video just a random picture from you file '''
+        
+        #below is the code used for extracting a single frame
+        '''     import cv2
+                
+                vidcap = cv2.VideoCapture('video_from_which_a_frame_is_to_be_extracted.extension')
+                success,image = vidcap.read()
+                count = 0 ---------------------------> specifies the frame number that is to be read 
+                success = True
+                
+                  success,image = vidcap.read()
+                  print 'Read a new frame: ', success
+                  cv2.imwrite("frame%d.jpg" % count, image)     # save frame as JPEG file
+                  
+                  
+                  This function was used to get the image frame455.jpg on which the drawing goes
+         '''
+    
+    
         for i in range(1,len(parameter_list[0][3]),1):
              img = cv2.imread('frame455.jpg')
              start=parameter_list[0][3][i-1]
@@ -241,7 +262,7 @@ def get_video_data(file_path,operations_dictionary):
 
 
         cv2.imshow("img",img)
-        cv2.waitKey(0) '''
+        cv2.waitKey(0) 
         
         
 
