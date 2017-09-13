@@ -19,6 +19,7 @@ char *outbuffer = (char*)malloc( sizeof(char) * (frame_size + 1) );
 
 fp = fopen("<<name_of_input_file>>.yuv","rb");
 fpout = fopen("<<name_of_output_file>>.yuv","wb");
+unsigned int frame_number = 0;
 
 if(fp)
 {
@@ -28,6 +29,7 @@ if(fp)
 		read = fread(buffer, 1, frame_size, fp);
 		if( read == frame_size )
 		{
+			frame_number++;
 			buffer[frame_size] = '\0';
 			read = 0;
 			//Mat src =  Mat(height2,width, CV_8UC1, buffer); // create opencv mat object
@@ -41,6 +43,10 @@ if(fp)
 			{
 				fwrite(outbuffer,1,frame_size,fpout);
 			}
+		}
+		else
+		{
+			break;
 		}
 	}
 }
