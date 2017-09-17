@@ -8,6 +8,7 @@ import cv2
 ## A list to store the paths of the edited video list for later use
 edited_videos_list=[]
 path_to_edited_videos="C:\\edited_videos"
+ 
 output_video_name="C:\edited_videos\final.mp4"
 
 
@@ -200,6 +201,16 @@ def putText(original_video,new_name,text_list):
         output = p.communicate()[0]
         print(output)
     #print(text_list[0][3])
+
+def convert_to_yuv(filename):
+    name_only=filename[:filename.rfind(".")]
+    cmd = [get_setting("FFMPEG_BINARY"),"-y",
+      "-i",modify_filename(filename),"-c:v","rawvideo","-pix_fmt", "yuv420p","-vf","scale=1280x720",modify_filename(name_only)+"yuv.yuv"]
+    p = subprocess.Popen(cmd, shell=True,
+                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output = p.communicate()[0]
+    
+    
     
 ###################--------------------THE ACTUAL INTERFACING FUNCTION------------------#################
 def get_video_data(file_path,operations_dictionary):
@@ -207,6 +218,7 @@ def get_video_data(file_path,operations_dictionary):
     create_new_directory()
     ## CREATE NEW VIDEO FILENAME 
     new_name=path_to_edited_videos+file_path[file_path.rfind("\\"):file_path.rfind(".")]
+    name_only=new_name[:]
     new_name+="_edit"+file_path[file_path.rfind("."):]
     print(new_name+"******")
     edited_videos_list.append(new_name)
@@ -229,29 +241,8 @@ def get_video_data(file_path,operations_dictionary):
 
         
         rgb_value=parameter_list[0][2]
-        '''referring the format of the dictionary passed from the front end 
-        #parameter_list[0][3] is the list of tuples , where each tuple is of the form (x coordinate , y coordinate)
-        #the following code write the drawing onto the image frame455 that has been extracted from the video previously
-        #replace it with the image that exists 
-        # when any drawing is done on the video from front end it will go onto this image (which is as of now NOT  a frame of the video just a random picture from you file '''
-        
-        #below is the code used for extracting a single frame
-        '''     import cv2
-                
-                vidcap = cv2.VideoCapture('video_from_which_a_frame_is_to_be_extracted.extension')
-                success,image = vidcap.read()
-                count = 0 ---------------------------> specifies the frame number that is to be read 
-                success = True
-                
-                  success,image = vidcap.read()
-                  print 'Read a new frame: ', success
-                  cv2.imwrite("frame%d.jpg" % count, image)     # save frame as JPEG file
-                  
-                  
-                  This function was used to get the image frame455.jpg on which the drawing goes
-         '''
-    
-    
+        #list_points=[(0,0),(10,10),(120,120),(14,14),(200,200),(202,202),(241,241)]
+
         for i in range(1,len(parameter_list[0][3]),1):
              img = cv2.imread('frame455.jpg')
              start=parameter_list[0][3][i-1]
