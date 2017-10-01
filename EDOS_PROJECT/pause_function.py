@@ -31,7 +31,7 @@ def pause_func(filename,pause_list):
              print "Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps)
 
      fourcc = cv2.VideoWriter_fourcc(*codec)
-     out = cv2.VideoWriter('C:\\edited_videos\\outs1.mp4',fourcc, fps, (long(cap.get(3)),long(cap.get(4))))#,480)
+     out = cv2.VideoWriter('outs1.mp4',fourcc, fps, (long(cap.get(3)),long(cap.get(4))))#,480)
      counter=1
      pause_frame=fps*pause_list[0]
 
@@ -40,14 +40,14 @@ def pause_func(filename,pause_list):
          ret, frame = cap.read()
          if ret==True:
               
-              print(counter)
+              #print(counter)
               if counter == pause_frame:
                    while write_same_frame>0:
                         out.write(frame)
                         cv2.imshow('frame',frame)
                         counter=counter+1
                         write_same_frame=write_same_frame-1
-                        print("same frame work")
+                        #print("same frame work")
               else:
                    out.write(frame)
                    cv2.imshow('frame',frame)
@@ -63,7 +63,7 @@ def pause_func(filename,pause_list):
      cv2.destroyAllWindows()
      
           
-pause_func("C:\\edited_videos\\lshorter7.mp4",[100,100,150])
+pause_func("most.mp4",[100,100,150])
 
 print ("done")
 #the list format is as follows
