@@ -1,8 +1,6 @@
-'''
-The function takes in an input file and the pause time and the length of the pause
 
-'''
 import subprocess
+import os
 import numpy as np
 import cv2
 def trim_func(filename,trim_list):
@@ -60,29 +58,39 @@ def trim_func(filename,trim_list):
               counter += 1
          else:
               break
-     print "skipped_frames = " + str(skipped_frames)
-     print "counter	= " + str(counter)
+     #print "skipped_frames = " + str(skipped_frames)
+     #print "counter	= " + str(counter)
      cap.release()
      out.release()
      cv2.destroyAllWindows()
      
           
 trim_func("most.mp4",[100,150])
-command = "ffmpeg -i most.mp4 -ab 160k -ac 2 -ar 44100 -vn audio.mp3"
+
+"""
+Following functions are for extracting audio out of the video then trimming it and finally joining it with the final video named "output_final"
+"""
+command = "ffmpeg -i most.mp4 -ab 160k -ac 2 -ar 44100 -vn audio.mp3" #takes out audio from the video file "most.mp3"
 
 subprocess.call(command, shell=True)
 
-command = "ffmpeg -ss 0 -i audio.mp3 -t 100 output1.mp3"
+command = "ffmpeg -ss 0 -i audio.mp3 -t 100 output1.mp3" #For the first audio cut
 subprocess.call(command, shell=True)
-command = "ffmpeg -ss 150 -i audio.mp3 -t 374 output2.mp3"
+command = "ffmpeg -ss 150 -i audio.mp3 -t 374 output2.mp3" #The second cut part of the audio
 subprocess.call(command, shell=True)
-
-command ="ffmpeg -f concat -i mylist.txt -c copy output.mp3"
-subprocess.call(command, shell=True)
-
-command="ffmpeg -i outs1.mp4 -i output.mp3 -c:v copy -c:a aac -strict experimental output_final.mp4"
+#Here my list is a txt file with text inside it as-  file 'output1.mp3' \n file 'output2.mp3'
+#\n denotes new line. file 'output2.mp3' is written in a new line after file 'output1.mp3'. 
+command ="ffmpeg -f concat -i mylist.txt -c copy output.mp3" #To merge the two audio file so as to create a trimmed audio file
 subprocess.call(command, shell=True)
 
+command="ffmpeg -i outs1.mp4 -i output.mp3 -c:v copy -c:a aac -strict experimental output_final.mp4" #Finallly joining the audio and the video
+subprocess.call(command, shell=True)
+
+os.remove("output2.mp3")
+os.remove("output1.mp3")
+os.remove("outs1.mp4")
+os.remove("output.mp3")
+os.remove("audio.mp3")
 print ("done")
 #the list format is as follows
 
@@ -90,9 +98,3 @@ print ("done")
 #trim_list[1] :stop time
 
           
-     
-'''
-https://stackoverflow.com/questions/26741116/python-extract-wav-from-video-file
-
-https://stackoverflow.com/questions/7629873/how-do-i-mix-audio-files-using-python
-'''
