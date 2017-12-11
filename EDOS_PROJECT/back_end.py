@@ -235,25 +235,36 @@ def get_video_data(file_path,operations_dictionary):
     if operations_dictionary["text"]!=[]:
         putText(file_path,new_name,operations_dictionary["text"])
 
-    if operations_dictionary["shapes"]:
+    if operations_dictionary["shapes"]!=[]:
+        print("Came into the draw function!")
         parameter_list=operations_dictionary["shapes"]
         print(parameter_list)
-
+        print("is the one we need to think about now !!!")
+        
         
         rgb_value=parameter_list[0][2]
         #list_points=[(0,0),(10,10),(120,120),(14,14),(200,200),(202,202),(241,241)]
+        index = 0
+        img = cv2.imread('1200.jpg')
+        parameter_list[0][3].pop(0)
+        for i in range(0,len(parameter_list[0][3]),1):            
+             if parameter_list[0][3][i][0] == -1:
+                 print "-1 encountered at "+str(i)
+                 print " range from "+ str(index+1)+" to "+str(i) 
+                 for j in range(index+1,i,1):
+                     start=parameter_list[0][3][j-1]
+                     end=parameter_list[0][3][j]
+                     print start , end
+                     print
+                     #img = cv2.imread('1200.jpg')
+                     cv2.line(img,start,end,rgb_value)                     
+                 index = i+1
+             
+        cv2.imwrite('1200.jpg',img)
+        #cv2.imshow("img",img)
+        cv2.waitKey()
+        cv2.destroyAllWindows()
 
-        for i in range(1,len(parameter_list[0][3]),1):
-             img = cv2.imread('frame455.jpg')
-             start=parameter_list[0][3][i-1]
-             end=parameter_list[0][3][i]
-             cv2.line(img,start,end,rgb_value)
-             cv2.imwrite('frame455.jpg',img)
-
-
-
-        cv2.imshow("img",img)
-        cv2.waitKey(0) 
         
         
 
