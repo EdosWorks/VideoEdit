@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import math
 import back_end
+import cv2
 #----------------------------------------------------------------------
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
@@ -232,6 +233,7 @@ class ParallelWindow(wx.Frame):
             for each_point in each_action:
                 self.dc.DrawCircle(each_point[0],each_point[1],2)
         print self.motion_sensor_list
+        print "point"
 
 
     def parallel_disp_control(self,event):
@@ -595,7 +597,7 @@ class TestPanel(wx.Frame):
     def create_parallel_window(self,panel_size,panel_position):
         global parallel_frame
         parallel_frame.Destroy()
-        parallel_frame=ParallelWindow(parent=None, id=-1, title="",sizee=panel_size,posi=panel_position)
+        parallel_frame=ParallelWindow(parent=None, id=-1, title="helllo",sizee=panel_size,posi=panel_position)
         parallel_frame.SetTransparent(100)
         app.SetTopWindow(parallel_frame)
         parallel_frame.Show()
@@ -837,6 +839,7 @@ class TestPanel(wx.Frame):
             parallel_frame.Show()
         else:
             self.draw_color=self.color.GetColour().Get()
+            
             parallel_frame.UNBIND_MOUSE_EVENTS()
             self.panel_width=parallel_frame.GetSize()[0]
             self.panel_height=parallel_frame.GetSize()[1]
@@ -847,6 +850,9 @@ class TestPanel(wx.Frame):
                     relative_y=self.video_height*each_point[1]/self.panel_height
                     pos=(relative_x,relative_y)
                     draw_list.append(pos)
+                print("new curve started") #This indicates that there should be a break between the curves 
+                draw_list.append((-1,-1)) # -1,-1 will indicate that a fresh curve has begun
+            print(str(self.mc.Tell())+" is where the frame was paused for drawing ") #self.mc.Tell() gets the current video time where it was paused to draw
             try:
                 draw_list=draw_list+self.draw_value[1]
             except IndexError:
@@ -855,7 +861,12 @@ class TestPanel(wx.Frame):
             self.add_operation(6)
             self.adjust_slider_color(-7)
             self.draw_value=[]
-            parallel_frame.dc.Clear()
+            #tester = cv2.imread(parallel_frame)
+            #print(tester)
+            print(draw_list)
+            #print(parameter_list)
+            parallel_frame.dc.Clear() # clearing the drawing screen 
+            
             parallel_frame.motion_sensor_list=[]
 
 
@@ -986,7 +997,8 @@ class TestPanel(wx.Frame):
 
 
         self.final_operations_dict['speed'].append([start,self.mc.Length(),self.speed_value])
-        print self.final_operations_dict
+        print self.final_operations_dict['speed']
+        print "is the final draw dictionary"
         back_end.get_video_data(self.sequence_video_list[self.sequence_video_pointer],self.final_operations_dict)
         try:
             self.sequence_video_pointer+=1
@@ -1168,7 +1180,7 @@ app = wx.App()
 frame = TestPanel(parent=None, id=-1, title="Sports Video Editor")
 frame.Maximize(True)
 frame.Show()
-parallel_frame=ParallelWindow(parent=None, id=-1, title="",sizee=(8*frame.screenWidth/10,3.24*frame.screenHeight/5), posi=(frame.screenWidth/10,frame.screenHeight/31))
+parallel_frame=ParallelWindow(parent=None, id=-1, title="Hello world!!",sizee=(8*frame.screenWidth/10,3.24*frame.screenHeight/5), posi=(frame.screenWidth/10,frame.screenHeight/31))
 parallel_frame.SetTransparent(100)
 app.SetTopWindow(parallel_frame)
 parallel_frame.Show()
