@@ -202,14 +202,82 @@ def putText(original_video,new_name,text_list):
         print(output)
     #print(text_list[0][3])
 
-def convert_to_yuv(filename):
-    name_only=filename[:filename.rfind(".")]
-    cmd = [get_setting("FFMPEG_BINARY"),"-y",
-      "-i",modify_filename(filename),"-c:v","rawvideo","-pix_fmt", "yuv420p","-vf","scale=1280x720",modify_filename(name_only)+"yuv.yuv"]
-    p = subprocess.Popen(cmd, shell=True,
-                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output = p.communicate()[0]
+
+def draw(original_video,new_name,parameter_list):
+    cap = cv2.VideoCapture(original_video)
+    extension=original_video.split(".")[1]
+    #finding the codec
+         
+    if extension=="mp4":
+        codec='MP4V'
+    elif extension=="avi" or extension=="AVI":
+        codec='XVID'
+        
+    (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
+
+    #and uses corresponding function to find the frame rate
+    if int(major_ver)  < 3 :
+        fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
+        print type(fps)
+        print "Frames pper second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(fps)
+    else :
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        print type(fps)
+        print "Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps)
+
+    fourcc = cv2.VideoWriter_fourcc(*codec)
+    print(fourcc)
+    out = cv2.VideoWriter('edits1.avi',fourcc, fps, (int(cap.get(3)),int(cap.get(4))),True)#,480)
+    counter=1
+    pause_frame=fps*parameter_list[0]
+    rgb_value=parameter_list[2]
     
+    write_same_frame=(parameter_list[1] - parameter_list[0])*fps
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        if ret==True:
+            print(counter)
+            if counter == pause_frame:
+                counter=counter+1
+                cv2.imwrite("tempimg.jpg")
+                img = cv2.imread('tempimg.jpg')
+                parameter_list[3].pop(0)
+                index = 0
+                for i in range(0,len(parameter_list[3]),1):
+                    if parameter_list[3][i][0] == -1:
+                        print "-1 encountered at "+str(i)
+                        print " range from "+ str(index+1)+" to "+str(i) 
+                        for j in range(index+1,i,1):
+                            start=parameter_list[3][j-1]
+                            end=parameter_list[3][j]
+                            print start , end
+                            print
+                            cv2.line(img,start,end,rgb_value)                     
+                        index = i+1
+                cv2.imwrite('tempimg.jpg',img)
+                img=cv2.imread('tempimg.jpg')
+                while write_same_frame>0:
+                        out.write(img)
+                        cv2.imshow('frame',img)
+                        write_same_frame=write_same_frame-1
+                        print("same frame work")
+            else:
+                    out.write(frame)
+                    cv2.imshow('frame',frame)
+                    counter=counter+1
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                print("exiting")
+                break
+            else:
+                break
+              
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()   
+        
+             
+     
     
     
 ###################--------------------THE ACTUAL INTERFACING FUNCTION------------------#################
@@ -222,7 +290,7 @@ def get_video_data(file_path,operations_dictionary):
     new_name+="_edit"+file_path[file_path.rfind("."):]
     print(new_name+"******")
     edited_videos_list.append(new_name)
-
+    print operations_dictionary
     if operations_dictionary["trim"]!=[]:
         for i in operations_dictionary["trim"]:
             new_name=trimmer(file_path,new_name,i)
@@ -237,13 +305,12 @@ def get_video_data(file_path,operations_dictionary):
 
     if operations_dictionary["shapes"]!=[]:
         print("Came into the draw function!")
-        parameter_list=operations_dictionary["shapes"]
-        print(parameter_list)
+        #print(parameter_list)
         print("is the one we need to think about now !!!")
-        
-        
+        draw(file_path,new_name,operations_dictionary["shapes"][0])
+        '''
         rgb_value=parameter_list[0][2]
-        #list_points=[(0,0),(10,10),(120,120),(14,14),(200,200),(202,202),(241,241)]
+        #1,241)]
         index = 0
         img = cv2.imread('1200.jpg')
         parameter_list[0][3].pop(0)
@@ -264,13 +331,12 @@ def get_video_data(file_path,operations_dictionary):
         #cv2.imshow("img",img)
         cv2.waitKey()
         cv2.destroyAllWindows()
-
-        
+        '''
         
 
 
     
-
+#convert_to_yuv("c:\\edited_videos\\1.mp4")
     
     
     
