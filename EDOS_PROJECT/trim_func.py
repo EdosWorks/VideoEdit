@@ -1,8 +1,9 @@
-
+from moviepy.editor import VideoFileClip
 import subprocess
 import os
 import numpy as np
 import cv2
+
 def trim_func(filename,trim_list):
      cap = cv2.VideoCapture(filename)
      extension=filename.split(".")[1]
@@ -36,6 +37,9 @@ def trim_func(filename,trim_list):
 
      fourcc = cv2.VideoWriter_fourcc(*codec)
      out = cv2.VideoWriter('outs1.mp4',fourcc, fps, (long(cap.get(3)),long(cap.get(4))))#,480)
+     #command="ffmpeg -i most.mp4 2>&1 | grep 'Duration'| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }'"
+     
+     #subprocess.call(command, shell=True)
      counter=1
      start_frame=int(trim_list[0]*fps)
      stop_frame=int(trim_list[1]*fps)
@@ -64,22 +68,32 @@ def trim_func(filename,trim_list):
      out.release()
      cv2.destroyAllWindows()
      
-          
-trim_func("most.mp4",[100,150])
+clip = VideoFileClip("most.mp4")
+length=clip.duration
+print( length )  
+l=[100,150]       
+trim_func("most.mp4",l)
 
 """
 Following functions are for extracting audio out of the video then trimming it and finally joining it with the final video named "output_final"
 """
+starting_second_to_trim_from=str(l[0])
+ending_second_to_trim_to=str(l[1])
 command = "ffmpeg -i most.mp4 -ab 160k -ac 2 -ar 44100 -vn audio.mp3" #takes out audio from the video file "most.mp3"
 
 subprocess.call(command, shell=True)
 
-command = "ffmpeg -ss 0 -i audio.mp3 -t 100 output1.mp3" #For the first audio cut
+command = "ffmpeg -ss 0 -i audio.mp3 -t " + starting_second_to_trim_from +" output1.mp3" #For the first audio cut
 subprocess.call(command, shell=True)
-command = "ffmpeg -ss 150 -i audio.mp3 -t 374 output2.mp3" #The second cut part of the audio
+command = "ffmpeg -ss " + ending_second_to_trim_to + " -i audio.mp3 -t " + str(length) + " output2.mp3" #The second cut part of the audio
 subprocess.call(command, shell=True)
 #Here my list is a txt file with text inside it as-  file 'output1.mp3' \n file 'output2.mp3'
 #\n denotes new line. file 'output2.mp3' is written in a new line after file 'output1.mp3'. 
+#following command is to create the mylist.txt text file
+with open('mylist.txt', 'w') as the_file:
+    the_file.write("file output1.mp3\n")
+    the_file.write('file output2.mp3\n')
+
 command ="ffmpeg -f concat -i mylist.txt -c copy output.mp3" #To merge the two audio file so as to create a trimmed audio file
 subprocess.call(command, shell=True)
 
